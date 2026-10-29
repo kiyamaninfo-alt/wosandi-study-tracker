@@ -1,0 +1,33 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    # Runs every 3 days at 04:00 UTC (09:30 AM SLST)
+    # Supabase Free Tier projects pause after 7 days of inactivity.
+    # Pinging every 3 days prevents pause while using near-zero resources (~10 requests/month).
+    - cron: '0 4 */3 * *'
+  workflow_dispatch: # Allows manual one-click trigger from GitHub Actions UI
+
+jobs:
+  keep-alive:
+    name: Ping Supabase REST API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Project
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://klcbypzapfojjakoehgx.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_hg4IZNmibddbNsxe5t0aZQ_1XUUBxBp' }}
+        run: |
+          echo "Starting Supabase keep-alive ping at $(date -u)"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/full_papers?limit=1&select=id")
+          
+          echo "HTTP Response Status: ${HTTP_STATUS}"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "✅ Supabase project is active and healthy!"
+          else
+            echo "❌ Ping failed with status ${HTTP_STATUS}"
+            exit 1
+          fi
