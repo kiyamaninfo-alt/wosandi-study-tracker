@@ -92,21 +92,46 @@
       .time-card {
         background: var(--card-bg);
         border-radius: 12px;
-        padding: 6px 4px;
+        padding: 8px 4px;
         text-align: center;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
-        border-top: 3px solid var(--primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border-top: 3.5px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
+      .time-card:hover {
+        transform: translateY(-2px);
+      }
+      /* 4 Distinct Theme Colors for Days, Hours, Minutes, Seconds */
+      .time-card-days { border-top-color: #8c7ae6 !important; background: rgba(140, 122, 230, 0.06); }
+      .time-card-days .time-num { color: #8c7ae6 !important; }
+      .time-card-hours { border-top-color: #e84393 !important; background: rgba(232, 67, 147, 0.06); }
+      .time-card-hours .time-num { color: #e84393 !important; }
+      .time-card-mins { border-top-color: #00cec9 !important; background: rgba(0, 206, 201, 0.06); }
+      .time-card-mins .time-num { color: #00b894 !important; }
+      .time-card-secs { border-top-color: #f39c12 !important; background: rgba(243, 156, 18, 0.06); }
+      .time-card-secs .time-num { color: #d35400 !important; }
+
+      :root.dark-mode .time-card-days, body.dark-mode .time-card-days { border-top-color: #a29bfe !important; background: rgba(162, 155, 254, 0.12) !important; }
+      :root.dark-mode .time-card-days .time-num, body.dark-mode .time-card-days .time-num { color: #a29bfe !important; }
+      :root.dark-mode .time-card-hours, body.dark-mode .time-card-hours { border-top-color: #fd79a8 !important; background: rgba(253, 121, 168, 0.12) !important; }
+      :root.dark-mode .time-card-hours .time-num, body.dark-mode .time-card-hours .time-num { color: #fd79a8 !important; }
+      :root.dark-mode .time-card-mins, body.dark-mode .time-card-mins { border-top-color: #55efc4 !important; background: rgba(85, 239, 196, 0.12) !important; }
+      :root.dark-mode .time-card-mins .time-num, body.dark-mode .time-card-mins .time-num { color: #55efc4 !important; }
+      :root.dark-mode .time-card-secs, body.dark-mode .time-card-secs { border-top-color: #ffeaa7 !important; background: rgba(255, 234, 167, 0.12) !important; }
+      :root.dark-mode .time-card-secs .time-num, body.dark-mode .time-card-secs .time-num { color: #ffeaa7 !important; }
+
       .time-num {
-        font-size: 18px;
-        font-weight: 700;
-        color: #8c7ae6;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
       }
       .time-lbl {
-        font-size: 8px;
+        font-size: 8.5px;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.8px;
         color: #7f8fa6;
+        margin-top: 2px;
       }
 
       /* Streak Card */
@@ -1920,16 +1945,22 @@
 
       /* Modal for Subject & Unit Selection (Interactive Start Sequence) */
       .focus-target-modal-window {
-        max-width: 480px;
-        width: 92%;
+        max-width: 580px;
+        width: 94%;
+        max-height: 88vh;
         border-radius: 16px;
         background: var(--card-bg, #ffffff);
         box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
       }
       .focus-target-modal-body {
         padding: 16px;
         font-family: 'Poppins', 'Noto Sans Sinhala', sans-serif;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
       }
       .focus-modal-step-title {
         font-size: 13.5px;
@@ -1943,9 +1974,12 @@
         margin-bottom: 12px;
       }
       .focus-modal-subj-grid {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
         gap: 9px;
+        max-height: 56vh;
+        overflow-y: auto;
+        padding-right: 2px;
       }
       .focus-subj-card {
         display: flex;
@@ -2032,7 +2066,7 @@
         background: #f1f2f6;
       }
       .focus-modal-units-list {
-        max-height: 290px;
+        max-height: 54vh;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
@@ -4959,19 +4993,19 @@
       </span>
     </div>
     <div class="countdown-container">
-      <div class="time-card">
+      <div class="time-card time-card-days">
         <div class="time-num" id="d">00</div>
         <div class="time-lbl">දින (Days)</div>
       </div>
-      <div class="time-card">
+      <div class="time-card time-card-hours">
         <div class="time-num" id="h">00</div>
         <div class="time-lbl">පැය (Hours)</div>
       </div>
-      <div class="time-card">
+      <div class="time-card time-card-mins">
         <div class="time-num" id="m">00</div>
         <div class="time-lbl">මිනිත්තු (Min)</div>
       </div>
-      <div class="time-card">
+      <div class="time-card time-card-secs">
         <div class="time-num" id="s">00</div>
         <div class="time-lbl">තත්පර (Sec)</div>
       </div>
@@ -6091,31 +6125,8 @@
           <div id="focusTargetStepSubject" class="focus-target-step">
             <div class="focus-modal-step-title">1. විෂය තෝරන්න (Select Subject):</div>
             <div class="focus-modal-step-sub">අධ්‍යයනය කිරීමට බලාපොරොත්තු වන විෂය ක්ලික් කරන්න:</div>
-            <div class="focus-modal-subj-grid">
-              <button type="button" class="focus-subj-card btn-modal-subj-ict" onclick="selectFocusModalSubject('ICT')">
-                <span class="focus-subj-card-icon">💻</span>
-                <div class="focus-subj-card-info">
-                  <div class="focus-subj-card-code">ICT</div>
-                  <div class="focus-subj-card-name">තොරතුරු හා සන්නිවේදන තාක්ෂණය</div>
-                </div>
-                <span class="focus-subj-card-badge">13 Units ➔</span>
-              </button>
-              <button type="button" class="focus-subj-card btn-modal-subj-et" onclick="selectFocusModalSubject('ET')">
-                <span class="focus-subj-card-icon">⚙️</span>
-                <div class="focus-subj-card-info">
-                  <div class="focus-subj-card-code">ET</div>
-                  <div class="focus-subj-card-name">ඉංජිනේරු තාක්ෂණවේදය</div>
-                </div>
-                <span class="focus-subj-card-badge">14 Units ➔</span>
-              </button>
-              <button type="button" class="focus-subj-card btn-modal-subj-sft" onclick="selectFocusModalSubject('SFT')">
-                <span class="focus-subj-card-icon">🔬</span>
-                <div class="focus-subj-card-info">
-                  <div class="focus-subj-card-code">SFT</div>
-                  <div class="focus-subj-card-name">තාක්ෂණවේදය සඳහා විද්‍යාව</div>
-                </div>
-                <span class="focus-subj-card-badge">23 Units ➔</span>
-              </button>
+            <div class="focus-modal-subj-grid" id="focusModalSubjGrid">
+              <!-- Dynamically populated with all active Grade 9 subjects via renderFocusModalSubjects() -->
             </div>
           </div>
 
@@ -7692,6 +7703,9 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
       function playSoftCompletionChime() {
         try {
           const ctx = getWebAudioContext();
+          if (ctx.state === 'suspended') {
+            ctx.resume();
+          }
           const now = ctx.currentTime;
           // Harmonic chime chords: C5 (523.25), E5 (659.25), G5 (783.99), C6 (1046.5)
           const notes = [523.25, 659.25, 783.99, 1046.5];
@@ -7700,17 +7714,66 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
             const gain = ctx.createGain();
             osc.type = 'sine';
             osc.frequency.setValueAtTime(freq, now + idx * 0.12);
-            gain.gain.setValueAtTime(0.14, now + idx * 0.12);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.12 + 2.2);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.12 + 1.2);
             osc.connect(gain);
             gain.connect(ctx.destination);
             osc.start(now + idx * 0.12);
-            osc.stop(now + idx * 0.12 + 2.2);
+            osc.stop(now + idx * 0.12 + 1.25);
           });
         } catch (e) {
           console.warn('Chime playback warning:', e);
         }
       }
+
+      let focusAlarmInterval = null;
+      let focusAlarmCountdownInterval = null;
+      let focusAlarmRemainingSeconds = 60;
+
+      function startContinuousCompletionAlarm() {
+        stopContinuousCompletionAlarm();
+
+        focusAlarmRemainingSeconds = 60;
+        const countdownEl = document.getElementById('alarmCountdownTxt');
+        if (countdownEl) countdownEl.innerText = `${focusAlarmRemainingSeconds}s`;
+
+        // Play initial harmonic chime immediately
+        playSoftCompletionChime();
+
+        // Repeat chime continuously every 1.8 seconds until stopped or 1 minute finishes
+        focusAlarmInterval = setInterval(() => {
+          playSoftCompletionChime();
+        }, 1800);
+
+        // Auto-stop countdown timer ticking every second
+        focusAlarmCountdownInterval = setInterval(() => {
+          focusAlarmRemainingSeconds--;
+          if (countdownEl) {
+            countdownEl.innerText = `${Math.max(0, focusAlarmRemainingSeconds)}s`;
+          }
+          if (focusAlarmRemainingSeconds <= 0) {
+            stopAlarmAndClosePopup();
+          }
+        }, 1000);
+      }
+
+      function stopContinuousCompletionAlarm() {
+        if (focusAlarmInterval) {
+          clearInterval(focusAlarmInterval);
+          focusAlarmInterval = null;
+        }
+        if (focusAlarmCountdownInterval) {
+          clearInterval(focusAlarmCountdownInterval);
+          focusAlarmCountdownInterval = null;
+        }
+      }
+
+      function stopAlarmAndClosePopup() {
+        stopContinuousCompletionAlarm();
+        const popup = document.getElementById('timerAlarmPopup');
+        if (popup) popup.style.display = 'none';
+      }
+      window.stopAlarmAndClosePopup = stopAlarmAndClosePopup;
 
       function toggleFocusSound() {
         isFocusSoundMuted = !isFocusSoundMuted;
@@ -7758,15 +7821,32 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
         }
       }
 
+      function generateSafeUUID() {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+          try {
+            return crypto.randomUUID();
+          } catch(e) {}
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+
       function getUnitsForSubject(subj) {
         const upper = String(subj || '').toUpperCase().trim();
+        const fallbackUnits = (typeof CANONICAL_UNITS_FALLBACK !== 'undefined' && CANONICAL_UNITS_FALLBACK[upper])
+          ? CANONICAL_UNITS_FALLBACK[upper]
+          : [];
+
         const sylList = (cachedCanonicalSyllabus && cachedCanonicalSyllabus.length > 0)
           ? cachedCanonicalSyllabus
           : (telemetryData && telemetryData.syllabusList ? telemetryData.syllabusList : []);
 
         if (sylList && sylList.length > 0) {
           const matching = sylList.filter(s => (s.subject || '').toUpperCase().trim() === upper);
-          if (matching.length > 0) {
+          if (matching.length > 0 && matching.length >= fallbackUnits.length) {
             const unitsMap = new Map();
             matching.forEach(s => {
               const uNum = (s.unit_number !== null && s.unit_number !== undefined)
@@ -7782,8 +7862,8 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
           }
         }
 
-        if (typeof CANONICAL_UNITS_FALLBACK !== 'undefined' && CANONICAL_UNITS_FALLBACK[upper]) {
-          return CANONICAL_UNITS_FALLBACK[upper];
+        if (fallbackUnits.length > 0) {
+          return fallbackUnits;
         }
         const fallbackList = [];
         for (let i = 1; i <= 10; i++) {
@@ -7923,7 +8003,7 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
       }
 
       async function saveStartedStudySession() {
-        const sessionId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'sess_' + Date.now();
+        const sessionId = generateSafeUUID();
         currentActiveSessionId = sessionId;
         const startNow = new Date();
         sessionStartTime = startNow.toISOString();
@@ -8000,7 +8080,7 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
 
         if (navigator.onLine && supabase && typeof supabase.from === 'function') {
           try {
-            const { error } = await supabase.from('study_timer_sessions').insert([dbPayload]);
+            const { error } = await supabase.from('study_timer_sessions').upsert([dbPayload], { onConflict: 'id' });
             if (!error) {
               startPayload.synced = true;
               const all = getLocalStoredSessions();
@@ -8355,87 +8435,89 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
         await onFocusSessionCompleted(true);
       }
 
-      async function finalizeOrDiscardSession(sessionId, activeSecs) {
+      async function finalizeOrDiscardSession(sessionId, activeSecs, isExplicitFinish = true) {
         if (!sessionId) return;
         const todayYYYYMMDD = getLocalDateString();
         const nowHHMMSS = getLocalTimeString();
         const nowIso = new Date().toISOString();
+        const durSecs = Math.max(1, Number(activeSecs) || 1);
+        const durMins = Math.max(1, Math.round(durSecs / 60));
 
-        if (activeSecs < 10) {
-          // If activeElapsedSeconds < 10 (Accidental Click):
-          // Completely delete this session record from LocalStorage and IndexedDB.
-          const sessions = getLocalStoredSessions().filter(s => s.id !== sessionId);
-          saveLocalStoredSessions(sessions);
+        const currentSubject = activeFocusSubject || (getActiveSubjects()[0] ? getActiveSubjects()[0].code : 'MATH');
+        const currentUnitNumber = activeFocusUnit ? (Number(activeFocusUnit.unitNumber) || 0) : 0;
+        const currentUnitName = activeFocusUnit ? (activeFocusUnit.unitName || `Unit ${activeFocusUnit.unitNumber}`) : 'සාමාන්‍ය පුනරීක්ෂණ';
 
+        const fullSessionRecord = {
+          id: sessionId,
+          subject: currentSubject,
+          unit_number: currentUnitNumber,
+          unit_name: currentUnitName,
+          timer_start_date: todayYYYYMMDD,
+          timer_start_time: nowHHMMSS,
+          timer_stop_date: todayYYYYMMDD,
+          timer_stop_time: nowHHMMSS,
+          start_time: sessionStartTime || nowIso,
+          end_time: nowIso,
+          duration_seconds: durSecs,
+          duration_minutes: durMins,
+          status: 'completed',
+          session_date: todayYYYYMMDD,
+          created_at: sessionStartTime || nowIso
+        };
+
+        // 1. Update local cache
+        const sessions = getLocalStoredSessions();
+        const targetIdx = sessions.findIndex(s => s.id === sessionId);
+        if (targetIdx !== -1) {
+          Object.assign(sessions[targetIdx], fullSessionRecord);
+        } else {
+          sessions.unshift({ ...fullSessionRecord, synced: false });
+        }
+        saveLocalStoredSessions(sessions);
+
+        // 2. Save in IndexedDB
+        try {
+          const db = await openOfflineDB();
+          if (db) {
+            const sName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+            const tx = db.transaction(sName, 'readwrite');
+            tx.objectStore(sName).put({ ...fullSessionRecord, synced: true });
+          }
+        } catch (_) {}
+
+        // 3. Upsert directly to Supabase
+        if (navigator.onLine && supabase && typeof supabase.from === 'function') {
           try {
-            const db = await openOfflineDB();
-            if (db) {
-              const sName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
-              const tx = db.transaction(sName, 'readwrite');
-              tx.objectStore(sName).delete(sessionId);
-            }
-          } catch (_) {}
-
-          if (navigator.onLine && supabase && typeof supabase.from === 'function') {
-            try {
-              let { error } = await supabase.from('study_timer_sessions').delete().eq('id', sessionId);
-              if (error) {
-                await supabase.from('study_sessions').delete().eq('id', sessionId);
+            const { error } = await supabase.from('study_timer_sessions').upsert([fullSessionRecord], { onConflict: 'id' });
+            if (!error) {
+              const all = getLocalStoredSessions();
+              const sIdx = all.findIndex(s => s.id === sessionId);
+              if (sIdx !== -1) {
+                all[sIdx].synced = true;
+                saveLocalStoredSessions(all);
               }
-            } catch (_) {
-              await enqueueSyncTask('DELETE', 'study_timer_sessions', { id: sessionId }, sessionId);
+            } else {
+              console.warn('study_timer_sessions upsert error, trying fallback:', error);
+              await supabase.from('study_sessions').upsert([{
+                id: sessionId,
+                subject: currentSubject,
+                duration_minutes: durMins,
+                session_date: todayYYYYMMDD,
+                created_at: sessionStartTime || nowIso
+              }], { onConflict: 'id' }).catch(() => {});
+              await enqueueSyncTask('INSERT', 'study_timer_sessions', fullSessionRecord, sessionId);
             }
-          } else {
-            await enqueueSyncTask('DELETE', 'study_timer_sessions', { id: sessionId }, sessionId);
+          } catch (netErr) {
+            console.warn('Network error saving session, queued for sync:', netErr);
+            await enqueueSyncTask('INSERT', 'study_timer_sessions', fullSessionRecord, sessionId);
           }
         } else {
-          // If activeElapsedSeconds >= 10:
-          // Finalize payload
-          const finishPayload = {
-            status: 'completed',
-            duration_seconds: activeSecs,
-            duration_minutes: Math.max(1, Math.round(activeSecs / 60)),
-            timer_stop_date: todayYYYYMMDD,
-            timer_stop_time: nowHHMMSS,
-            end_time: nowIso
-          };
-
-          const sessions = getLocalStoredSessions();
-          const target = sessions.find(s => s.id === sessionId);
-          if (target) {
-            Object.assign(target, finishPayload);
-            saveLocalStoredSessions(sessions);
-          }
-
-          try {
-            const db = await openOfflineDB();
-            if (db) {
-              const sName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
-              const tx = db.transaction(sName, 'readwrite');
-              const gReq = tx.objectStore(sName).get(sessionId);
-              gReq.onsuccess = () => {
-                if (gReq.result) {
-                  tx.objectStore(sName).put({ ...gReq.result, ...finishPayload });
-                }
-              };
-            }
-          } catch (_) {}
-
-          if (navigator.onLine && supabase && typeof supabase.from === 'function') {
-            try {
-              let { error } = await supabase.from('study_timer_sessions').update(finishPayload).eq('id', sessionId);
-              if (error) {
-                await supabase.from('study_sessions').update({ duration_minutes: finishPayload.duration_minutes }).eq('id', sessionId);
-              }
-            } catch (_) {
-              await enqueueSyncTask('UPDATE', 'study_timer_sessions', finishPayload, sessionId);
-            }
-          } else {
-            await enqueueSyncTask('UPDATE', 'study_timer_sessions', finishPayload, sessionId);
-          }
+          await enqueueSyncTask('INSERT', 'study_timer_sessions', fullSessionRecord, sessionId);
         }
 
         await updateSyncUI();
+        renderStudyHeatmap();
+        renderRecentSessionsInSettings();
       }
 
       async function resetFocusTimer() {
@@ -8467,9 +8549,9 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
         focusRemainingSeconds = focusTotalSeconds;
         updateFocusDisplay();
 
-        // Event 4: RESET
-        if (finalSessionId) {
-          await finalizeOrDiscardSession(finalSessionId, finalActiveSeconds);
+        // If timer had run for >= 3 seconds, save it to database
+        if (finalSessionId && finalActiveSeconds >= 3) {
+          await finalizeOrDiscardSession(finalSessionId, finalActiveSeconds, false);
         }
 
         broadcastLiveTimerState('STOP');
@@ -8502,32 +8584,29 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
         focusRemainingSeconds = focusTotalSeconds;
         updateFocusDisplay();
 
-        // Event 4: Timer FINISH / MANUAL STOP
+        // Event 4: Timer FINISH / MANUAL STOP -> Always finalize and save to Supabase database!
         if (finalSessionId) {
-          await finalizeOrDiscardSession(finalSessionId, finalActiveSeconds);
+          await finalizeOrDiscardSession(finalSessionId, finalActiveSeconds, true);
         }
 
-        if (finalActiveSeconds < 10) {
-          broadcastLiveTimerState('STOP');
-          showHtmlAlert('අධ්‍යයන සැසිය තත්පර 10කට අඩු බැවින් වාර්තා නොකෙරිණි (Session under 10s discarded)', false);
-        } else {
-          broadcastLiveTimerState('FINISH');
-          playSoftCompletionChime();
-          try {
-            confetti({
-              particleCount: 120,
-              spread: 90,
-              origin: { y: 0.6 },
-              colors: ['#00cec9', '#0984e3', '#fdcb6e', '#e17055', '#20bf6b', '#8c7ae6']
-            });
-          } catch (e) {}
+        broadcastLiveTimerState('FINISH');
+        try {
+          confetti({
+            particleCount: 120,
+            spread: 90,
+            origin: { y: 0.6 },
+            colors: ['#00cec9', '#0984e3', '#fdcb6e', '#e17055', '#20bf6b', '#8c7ae6']
+          });
+        } catch (e) {}
 
-          // Show Alarm Completion Modal
-          const popup = document.getElementById('timerAlarmPopup');
-          if (popup) {
-            popup.style.display = 'flex';
-            focusModal(popup);
-          }
+        // Start continuous repeating alarm (stops when user clicks stop button or 60s passes)
+        startContinuousCompletionAlarm();
+
+        // Show Alarm Completion Modal
+        const popup = document.getElementById('timerAlarmPopup');
+        if (popup) {
+          popup.style.display = 'flex';
+          focusModal(popup);
         }
 
         currentActiveSessionId = null;
@@ -8536,11 +8615,6 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
         actualElapsedSeconds = 0;
         renderStudyHeatmap();
         renderRecentSessionsInSettings();
-      }
-
-      function stopAlarmAndClosePopup() {
-        const popup = document.getElementById('timerAlarmPopup');
-        if (popup) popup.style.display = 'none';
       }
 
       // Expose to window for inline onclick attributes
@@ -8808,8 +8882,8 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
 
         if (navigator.onLine && supabase && typeof supabase.from === 'function') {
           try {
-            // First attempt to insert into dedicated study_timer_sessions
-            const { error } = await supabase.from('study_timer_sessions').insert([payload]);
+            // First attempt to upsert into dedicated study_timer_sessions
+            const { error } = await supabase.from('study_timer_sessions').upsert([payload], { onConflict: 'id' });
             if (!error) {
               sessionItem.synced = true;
               const all = getLocalStoredSessions();
@@ -8837,7 +8911,7 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
                 session_date: sessionItem.session_date,
                 created_at: sessionItem.created_at
               };
-              const { error: err2 } = await supabase.from('study_sessions').insert([legacyPayload]);
+              const { error: err2 } = await supabase.from('study_sessions').upsert([legacyPayload], { onConflict: 'id' });
               if (!err2) {
                 sessionItem.synced = true;
                 const all = getLocalStoredSessions();
@@ -9408,6 +9482,7 @@ var supabase = (window.supabase && typeof window.supabase.createClient === 'func
         updateFocusSoundUI();
         updateActiveTargetUI();
         updateFocusDisplay();
+        renderFocusModalSubjects();
         renderStudyHeatmap();
         updateSyncUI();
 
@@ -17403,8 +17478,8 @@ function openSidebarModal() {
       }
     </script>
     <!-- Timer Alarm Popup -->
-    <div id="timerAlarmPopup" class="modal-overlay-alert" style="z-index: 99999;">
-      <div class="alert-popup-card" style="border-top: 5px solid #00cec9;">
+    <div id="timerAlarmPopup" class="modal-overlay-alert" style="z-index: 99999;" onclick="stopAlarmAndClosePopup()">
+      <div class="alert-popup-card" style="border-top: 5px solid #00cec9;" onclick="event.stopPropagation()">
         <div class="alert-popup-icon">🎉</div>
         <div class="alert-popup-title">
           Focus Session Complete!
