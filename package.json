@@ -1,0 +1,8 @@
+{
+  "name": "wosandi-grade9-study-tracker",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  }
+}

@@ -1,0 +1,4938 @@
+<!DOCTYPE html>
+<html lang="si" class="dark-mode">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wosandi Grade 9 — Study Analytics & Heatmap</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20width%3D%2264%22%20height%3D%2264%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22appLogoGrad%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%238c7ae6%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2300cec9%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22url(%23appLogoGrad)%22%2F%3E%3Cg%20transform%3D%22translate(8%2C%208)%20scale(2)%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M12%202L3%207L12%2012L21%207L12%202Z%22%20fill%3D%22%23ffffff%22%2F%3E%3Cpath%20d%3D%22M3%2013L12%2018L21%2013%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M3%2017L12%2022L21%2017%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+  <link rel="apple-touch-icon" href="/app-logo.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="/env.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #8c7ae6;
+      --primary-dark: #6c5ce7;
+      --accent-green: #20bf6b;
+      --accent-blue: #0984e3;
+      --accent-purple: #8854d0;
+      --accent-yellow: #fdcb6e;
+      --accent-red: #eb4d4b;
+      --bg-dark: #030508;
+      --card-bg: #090d14;
+      --card-inner: #0e131d;
+      --border-color: #1e2530;
+      --border-subtle: #161d28;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --text-dim: #6e7681;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', 'Noto Sans Sinhala', sans-serif;
+      background: linear-gradient(135deg, #030508 0%, #080c12 50%, #0a0e16 100%) !important;
+      color: var(--text-main);
+      padding: 14px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 100%;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 4px;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px 6px;
+      }
+      .container {
+        padding: 0;
+      }
+    }
+
+    /* Header Bar */
+    .analytics-header-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-inner);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-back-home:hover {
+      background: #1a2230;
+      border-color: #6c5ce7;
+      color: #a29bfe;
+      transform: translateX(-2px);
+    }
+    .header-titles h1 {
+      font-size: 17px;
+      font-weight: 800;
+      background: linear-gradient(45deg, #8c7ae6, #00cec9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+      line-height: 1.2;
+    }
+    .header-titles p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sync-status-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(32, 191, 107, 0.12);
+      color: #20bf6b;
+      border: 1px solid rgba(32, 191, 107, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .sync-status-badge.offline {
+      background: rgba(253, 203, 110, 0.15);
+      color: #fdcb6e;
+      border-color: rgba(253, 203, 110, 0.3);
+    }
+    .sync-status-badge.syncing {
+      background: rgba(108, 92, 231, 0.15);
+      color: #a29bfe;
+      border-color: rgba(108, 92, 231, 0.35);
+    }
+    /* Active Live Timer Realtime Banner */
+    .active-timer-live-banner {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(235, 77, 75, 0.16), rgba(214, 48, 49, 0.28));
+      border: 1px solid rgba(255, 118, 117, 0.5);
+      border-radius: 14px;
+      padding: 12px 18px;
+      margin-bottom: 18px;
+      color: #ff7675;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 4px 18px rgba(214, 48, 49, 0.25);
+      animation: pulseLiveBanner 2.2s infinite ease-in-out;
+    }
+    .active-timer-live-banner strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .live-dot-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ff4757;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+      animation: pulseLiveDot 1.6s infinite cubic-bezier(0.66, 0, 0, 1);
+      flex-shrink: 0;
+    }
+    @keyframes pulseLiveDot {
+      0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+    }
+    @keyframes pulseLiveBanner {
+      0%, 100% { border-color: rgba(255, 118, 117, 0.4); }
+      50% { border-color: rgba(255, 118, 117, 0.85); box-shadow: 0 4px 24px rgba(214, 48, 49, 0.4); }
+    }
+    .btn-action-sm {
+      background: var(--card-inner);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 9px;
+      padding: 5px 11px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .btn-action-sm:hover {
+      background: #1a2230;
+      border-color: #6c5ce7;
+    }
+
+    /* Executive KPI Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 680px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 440px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+    .kpi-card.streak::before { background: #ff7675; }
+    .kpi-card.time::before { background: #0984e3; }
+    .kpi-card.today::before { background: #00cec9; }
+    .kpi-card.avg::before { background: #a29bfe; }
+    .kpi-card.count::before { background: #55efc4; }
+    .kpi-card.peak-slot::before { background: #fdcb6e; }
+    .kpi-card.week-time::before { background: #20bf6b; }
+    .kpi-card.active-days::before { background: #00cec9; }
+    .kpi-card.top-subj::before { background: #e056fd; }
+    .kpi-card.completion-rate::before { background: #ff7675; }
+
+    .kpi-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .kpi-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kpi-icon {
+      font-size: 18px;
+    }
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+      font-family: 'Poppins', monospace, sans-serif;
+    }
+    .kpi-sub {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* Section Card */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .section-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+    }
+    .section-title-icon {
+      font-size: 18px;
+    }
+    .timeframe-tabs {
+      display: flex;
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .timeframe-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .timeframe-tab-btn.active {
+      background: #1e2530;
+      color: #58a6ff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    /* Comprehensive Heatmap Container */
+    .heatmap-outer-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 0;
+    }
+    .heatmap-layout {
+      display: inline-block;
+      min-width: max-content;
+    }
+    .heatmap-months-row {
+      display: flex;
+      font-size: 9.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      padding-left: 24px;
+      height: 14px;
+    }
+    .heatmap-body {
+      display: flex;
+      gap: 6px;
+    }
+    .heatmap-day-labels {
+      display: grid;
+      grid-template-rows: repeat(7, 12px);
+      gap: 4px;
+      font-size: 8.5px;
+      color: var(--text-dim);
+      font-weight: 600;
+      line-height: 12px;
+      width: 18px;
+    }
+    .heatmap-matrix {
+      display: grid;
+      grid-template-rows: repeat(7, 12px);
+      grid-auto-flow: column;
+      gap: 4px;
+    }
+    .heat-cell {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: #121822;
+      border: 1px solid #1a222f;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.12s ease, outline 0.12s ease;
+    }
+    .heat-cell:hover, .heat-cell.selected {
+      transform: scale(1.35);
+      z-index: 10;
+      outline: 2px solid #6c5ce7;
+    }
+    .heat-cell.level-0 { background: #121822; border-color: #1a222f; }
+    .heat-cell.level-1 { background: #1f3a52; border-color: #2b4c68; }
+    .heat-cell.level-2 { background: #00b894; border-color: #00cec9; }
+    .heat-cell.level-3 { background: #00cec9; border-color: #81ecec; }
+    .heat-cell.level-4 { background: #6c5ce7; border-color: #a29bfe; }
+
+    .heatmap-legend-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 10px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .legend-scale-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .legend-boxes {
+      display: inline-flex;
+      gap: 3px;
+    }
+
+    /* Interactive Period Tabs (Item 6) */
+    .day-period-tabs-bar {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      background: var(--card-inner);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      width: fit-content;
+    }
+    .period-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .period-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .period-tab-btn.active {
+      background: #1e2530;
+      color: #00cec9;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Interactive Day Detail Card */
+    .day-detail-banner {
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .day-detail-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .day-detail-date {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .day-detail-mins {
+      font-size: 12px;
+      font-weight: 800;
+      color: #00cec9;
+      background: rgba(0, 206, 201, 0.12);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .day-detail-subjects {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* 24 × 7 Day-of-Week & Active Times Habit Matrix (Responsive & Sticky) */
+    .habit-matrix-outer-container {
+      width: 100%;
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      overflow: hidden;
+      margin-top: 14px;
+    }
+    .habit-matrix-scroll-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      width: 100%;
+      padding-bottom: 6px;
+    }
+    .habit-matrix-scroll-wrap::-webkit-scrollbar {
+      height: 6px;
+    }
+    .habit-matrix-scroll-wrap::-webkit-scrollbar-thumb {
+      background: #2b3648;
+      border-radius: 4px;
+    }
+    .habit-matrix-24x7-table {
+      border-collapse: separate;
+      border-spacing: 3px;
+      min-width: 820px;
+      width: 100%;
+    }
+    .habit-matrix-24x7-table th {
+      padding: 6px 3px;
+      background: #141c28;
+      color: var(--text-muted);
+      font-size: 9px;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    .habit-day-th-sticky {
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      background: #141c28 !important;
+      text-align: left !important;
+      padding: 6px 10px !important;
+      min-width: 90px;
+      box-shadow: 2px 0 6px rgba(0, 0, 0, 0.45);
+    }
+    .habit-day-td-sticky {
+      position: sticky;
+      left: 0;
+      z-index: 4;
+      background: #121824 !important;
+      color: #f0f6fc;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: left;
+      padding: 4px 10px;
+      min-width: 90px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      white-space: nowrap;
+      box-shadow: 2px 0 6px rgba(0, 0, 0, 0.45);
+    }
+    .habit-cell-24 {
+      width: 25px;
+      height: 25px;
+      min-width: 25px;
+      max-width: 25px;
+      text-align: center;
+      vertical-align: middle;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid #1a2230;
+      background: #0f1520;
+      transition: transform 0.12s ease, outline 0.12s ease, box-shadow 0.12s ease;
+      padding: 0;
+    }
+    .habit-cell-24:hover, .habit-cell-24.active-tap {
+      transform: scale(1.3);
+      z-index: 10;
+      outline: 2px solid #a29bfe;
+      box-shadow: 0 0 10px rgba(108, 92, 231, 0.6);
+    }
+    .habit-cell-lvl-0 {
+      background: #0f1520;
+      border-color: #192230;
+    }
+    .habit-cell-lvl-1 {
+      background: rgba(108, 92, 231, 0.22);
+      border-color: rgba(108, 92, 231, 0.35);
+    }
+    .habit-cell-lvl-2 {
+      background: rgba(108, 92, 231, 0.45);
+      border-color: rgba(108, 92, 231, 0.6);
+    }
+    .habit-cell-lvl-3 {
+      background: rgba(108, 92, 231, 0.72);
+      border-color: rgba(108, 92, 231, 0.9);
+    }
+    .habit-cell-lvl-4 {
+      background: #6c5ce7;
+      border-color: #a29bfe;
+      box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.4);
+    }
+
+
+    /* Visual Charts Timeframe Filter Tabs (Items 10 & 11) */
+    .chart-filter-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .chart-tab-btn {
+      background: var(--card-inner);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .chart-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .chart-tab-btn.active {
+      background: rgba(108, 92, 231, 0.25);
+      color: #a29bfe;
+      border-color: #6c5ce7;
+    }
+
+    /* History Log Timeframe Filter Tabs & Pagination (Items 13 & 13.2) */
+    .history-timeframe-tabs {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .hist-time-tab-btn {
+      background: var(--card-inner);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .hist-time-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .hist-time-tab-btn.active {
+      background: rgba(108, 92, 231, 0.25);
+      color: #a29bfe;
+      border-color: #6c5ce7;
+    }
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--card-inner);
+      border-top: 1px solid var(--border-color);
+      border-radius: 0 0 14px 14px;
+    }
+    .btn-page {
+      background: #1b2330;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .btn-page:hover:not(:disabled) {
+      background: rgba(108, 92, 231, 0.25);
+      border-color: #6c5ce7;
+      color: #a29bfe;
+    }
+    .btn-page:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .page-indicator {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    /* Charts Grid - Stacked Layout (PC & Mobile) */
+    .charts-grid {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .chart-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .chart-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .chart-box-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (max-width: 768px) {
+      .chart-canvas-wrap {
+        height: 220px;
+      }
+    }
+
+    /* Subject Breakdown 3-Cards Row */
+    .subj-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 768px) {
+      .subj-cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .subj-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    }
+    .subj-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .subj-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 7px;
+      text-transform: uppercase;
+    }
+    .subj-pill.ict { background: rgba(32, 191, 107, 0.18); color: #20bf6b; }
+    .subj-pill.et { background: rgba(9, 132, 227, 0.18); color: #0984e3; }
+    .subj-pill.sft { background: rgba(136, 84, 208, 0.18); color: #8854d0; }
+    .subj-total-mins {
+      font-size: 16px;
+      font-weight: 800;
+      font-family: 'Poppins', monospace, sans-serif;
+    }
+    .subj-progress-track {
+      background: #161d28;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 8px 0 6px;
+    }
+    .subj-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+    .subj-progress-fill.ict { background: #20bf6b; }
+    .subj-progress-fill.et { background: #0984e3; }
+    .subj-progress-fill.sft { background: #8854d0; }
+    .subj-card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    /* Subject-wise Progress Section Styles (Item 1) */
+    .subj-balance-wrapper {
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .subj-balance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .subj-balance-legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .legend-dot-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text-main);
+    }
+    .legend-dot-item .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .legend-dot-item .dot.ict { background: #20bf6b; }
+    .legend-dot-item .dot.et { background: #0984e3; }
+    .legend-dot-item .dot.sft { background: #8854d0; }
+    .subj-multi-track {
+      display: flex;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #161d28;
+      margin-top: 10px;
+    }
+    .subj-multi-segment {
+      height: 100%;
+      transition: width 0.5s ease;
+    }
+    .subj-multi-segment.ict { background: linear-gradient(90deg, #20bf6b, #00cec9); }
+    .subj-multi-segment.et { background: linear-gradient(90deg, #0984e3, #6c5ce7); }
+    .subj-multi-segment.sft { background: linear-gradient(90deg, #8854d0, #e056fd); }
+
+    .subject-detailed-progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    @media (max-width: 900px) {
+      .subject-detailed-progress-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .subject-prog-card {
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px;
+      position: relative;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .subject-prog-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+    .subject-prog-card.ict-theme { border-top: 3px solid #20bf6b; }
+    .subject-prog-card.et-theme { border-top: 3px solid #0984e3; }
+    .subject-prog-card.sft-theme { border-top: 3px solid #8854d0; }
+
+    .subj-prog-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .subj-prog-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .subj-prog-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      width: fit-content;
+    }
+    .subj-prog-badge.ict { background: rgba(32, 191, 107, 0.18); color: #20bf6b; }
+    .subj-prog-badge.et { background: rgba(9, 132, 227, 0.18); color: #0984e3; }
+    .subj-prog-badge.sft { background: rgba(136, 84, 208, 0.18); color: #a29bfe; }
+    .subj-prog-name {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .subj-prog-pct {
+      font-size: 20px;
+      font-weight: 800;
+      font-family: 'Poppins', monospace, sans-serif;
+    }
+    .subj-prog-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    .stat-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .stat-lbl {
+      font-size: 9.5px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .stat-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: 'Poppins', monospace, sans-serif;
+    }
+    .subj-wide-bar-track {
+      background: #161d28;
+      height: 9px;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .subj-wide-bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+    .subj-wide-bar-fill.ict { background: linear-gradient(90deg, #20bf6b, #00cec9); }
+    .subj-wide-bar-fill.et { background: linear-gradient(90deg, #0984e3, #6c5ce7); }
+    .subj-wide-bar-fill.sft { background: linear-gradient(90deg, #8854d0, #e056fd); }
+    .subj-prog-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .subj-badge-status {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(32, 191, 107, 0.15);
+      color: #20bf6b;
+    }
+
+    /* Peak Study Time Periods Breakdown Section Styles (Item 2) */
+    .slot-filter-tabs {
+      display: flex;
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .slot-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .slot-tab-btn.active {
+      background: #1e2530;
+      color: #fdcb6e;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .slot-highlight-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(135deg, rgba(253, 203, 110, 0.1), rgba(108, 92, 231, 0.12));
+      border: 1px solid rgba(253, 203, 110, 0.25);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+    .slot-hl-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .slot-hl-content {
+      min-width: 0;
+    }
+    .slot-hl-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #f1f2f6;
+      line-height: 1.3;
+    }
+    .slot-hl-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .time-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .slot-card {
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .slot-card.is-peak {
+      border-color: rgba(253, 203, 110, 0.55);
+      box-shadow: 0 0 14px rgba(253, 203, 110, 0.12);
+      background: linear-gradient(135deg, rgba(253, 203, 110, 0.05), var(--card-inner));
+    }
+    .slot-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .slot-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .slot-icon {
+      font-size: 18px;
+    }
+    .slot-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .slot-range {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 1px;
+    }
+    .slot-badge-peak {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #fdcb6e;
+      color: #2d3436;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .slot-metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 8px 0 6px;
+    }
+    .slot-hours {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      font-family: 'Poppins', monospace, sans-serif;
+    }
+    .slot-sessions {
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .slot-pct-txt {
+      font-size: 12px;
+      font-weight: 800;
+      font-family: 'Poppins', monospace, sans-serif;
+    }
+    .slot-bar-track {
+      background: #161d28;
+      height: 7px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .slot-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    /* Sessions History Table */
+    .history-filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .filter-pills-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .filter-btn.active {
+      background: #1e2530;
+      color: #58a6ff;
+      border-color: #58a6ff;
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+    .sessions-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      text-align: left;
+    }
+    .sessions-table th {
+      background: var(--card-inner);
+      color: var(--text-muted);
+      padding: 9px 12px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    .sessions-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--card-bg);
+      color: var(--text-main);
+    }
+    .sessions-table tr:last-child td {
+      border-bottom: none;
+    }
+    .sessions-table tr:hover td {
+      background: #0d121b;
+    }
+    .btn-table-action {
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 2.5px 7px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-table-action:hover {
+      background: #1a2230;
+      color: #f0f6fc;
+    }
+    .btn-table-del:hover {
+      background: rgba(235, 77, 75, 0.15);
+      color: #ff7675;
+      border-color: #eb4d4b;
+    }
+
+    /* Modal for Manual Entry */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 99999;
+    }
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 95%;
+      max-width: 440px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+    }
+    #manualSessionModal .modal-box {
+      width: min(94vw, 440px);
+      max-height: 90vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .modal-box-head {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #6c5ce7, #8c7ae6);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 13.5px;
+    }
+    .modal-box-body {
+      padding: 16px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .form-control {
+      width: 100%;
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 8px 10px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #6c5ce7;
+    }
+
+    /* Security PIN Modal & Shake Animation */
+    @keyframes pinShakeAnim {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .pin-shake {
+      animation: pinShakeAnim 0.35s ease-in-out;
+    }
+    .pin-mask-input {
+      width: 170px;
+      font-size: 26px;
+      text-align: center;
+      letter-spacing: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+      background: var(--card-inner);
+      color: var(--text-main);
+      font-family: monospace;
+      outline: none;
+      margin: 0 auto;
+      display: block;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .pin-mask-input:focus {
+      border-color: #6c5ce7;
+      box-shadow: 0 0 12px rgba(108, 92, 231, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Navigation & Header -->
+    <header class="analytics-header-card">
+      <div class="header-left">
+        <a href="./" class="btn-back-home" onclick="handleBackToDashboard(event)" title="ආපසු Dashboard වෙත යන්න">
+          <span>←</span> <span>Dashboard</span>
+        </a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="app-logo-badge" style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #8c7ae6 0%, #00cec9 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(140, 122, 230, 0.4); flex-shrink: 0;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L3 7L12 12L21 7L12 2Z" fill="#ffffff"/>
+              <path d="M3 13L12 18L21 13" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 17L12 22L21 17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="header-titles">
+            <h1 style="display: flex; align-items: center; gap: 6px;">Wosandi Grade 9 — Study Analytics &amp; Heatmap</h1>
+            <p>ගැඹුරු අධ්‍යයන දත්ත, අඛණ්ඩතා Heatmap සහ විෂය ප්‍රගති විශ්ලේෂණය</p>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="sync-status-badge" id="analyticsSyncBadge">
+          <span>🟢</span> <span>Online Synced</span>
+        </div>
+        <button type="button" class="btn-action-sm" onclick="purgeLegacyAndCorruptSessions(true)" title="පැරණි SFT / 0-min සැසි ඉවත් කර නව DB සමඟ Sync කරන්න">
+          <span>🧹 Clean Old Data</span>
+        </button>
+        <button type="button" class="btn-action-sm" onclick="openManualSessionModal()">
+          <span>➕ Add Session</span>
+        </button>
+        <button type="button" class="btn-action-sm" onclick="refreshAnalyticsData()" title="නැවුම් කරන්න">
+          <span>🔄 Refresh</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Real-time Active Timer Live Stream Banner (Item 1) -->
+    <div id="activeTimerLiveBanner" class="active-timer-live-banner">
+      <span class="live-dot-pulse"></span>
+      <span id="activeTimerLiveBannerText">🔴 සක්‍රීය අධ්‍යයන සැසියක් ක්‍රියාත්මක වෙමින් පවතී — MATH | සාමාන්‍ය පුනරීක්ෂණ</span>
+    </div>
+
+    <!-- Top Executive KPIs -->
+    <section class="kpi-grid">
+      <div class="kpi-card streak">
+        <div class="kpi-top">
+          <span class="kpi-title">Current Streak</span>
+          <span class="kpi-icon">🔥</span>
+        </div>
+        <div class="kpi-val"><span id="kpiCurrentStreak">0</span> <small style="font-size:13px; font-weight:600;">Days</small></div>
+        <div class="kpi-sub">Best Record: <strong id="kpiBestStreak" style="color:#f0f6fc;">0</strong> Days</div>
+      </div>
+
+      <div class="kpi-card time">
+        <div class="kpi-top">
+          <span class="kpi-title">Total Focus Time</span>
+          <span class="kpi-icon">⏱️</span>
+        </div>
+        <div class="kpi-val"><span id="kpiTotalHours">0.0</span> <small style="font-size:13px; font-weight:600;">Hrs</small></div>
+        <div class="kpi-sub">Total: <strong id="kpiTotalMinutes" style="color:#0984e3;">0</strong> Mins</div>
+      </div>
+
+      <div class="kpi-card today">
+        <div class="kpi-top">
+          <span class="kpi-title">Today's Focus</span>
+          <span class="kpi-icon">📅</span>
+        </div>
+        <div class="kpi-val"><span id="kpiTodayMins">0</span> <small style="font-size:13px; font-weight:600;">Mins</small></div>
+        <div class="kpi-sub">Daily Target: <strong style="color:#00cec9;">180m</strong></div>
+      </div>
+
+      <div class="kpi-card avg">
+        <div class="kpi-top">
+          <span class="kpi-title">Daily Average (7d)</span>
+          <span class="kpi-icon">📈</span>
+        </div>
+        <div class="kpi-val"><span id="kpiWeeklyAvg">0</span> <small style="font-size:13px; font-weight:600;">m/day</small></div>
+        <div class="kpi-sub">This Week: <strong id="kpiThisWeekTotal" style="color:#a29bfe;">0</strong> Mins</div>
+      </div>
+
+      <div class="kpi-card count">
+        <div class="kpi-top">
+          <span class="kpi-title">Sessions Finished</span>
+          <span class="kpi-icon">🎯</span>
+        </div>
+        <div class="kpi-val"><span id="kpiTotalSessions">0</span> <small style="font-size:13px; font-weight:600;">Sess</small></div>
+        <div class="kpi-sub">Avg Session: <strong id="kpiAvgSessionMins" style="color:#55efc4;">50</strong> Mins</div>
+      </div>
+    </section>
+
+    <!-- 2nd Row: Executive Study Intelligence KPIs (Screenshot1 Row 2 - Item 3) -->
+    <section class="kpi-grid" style="margin-bottom: 20px;">
+      <div class="kpi-card peak-slot">
+        <div class="kpi-top">
+          <span class="kpi-title">Peak Study Time</span>
+          <span class="kpi-icon">⏰</span>
+        </div>
+        <div class="kpi-val"><span id="kpiPeakTimeSlot">--</span></div>
+        <div class="kpi-sub">Slot Share: <strong id="kpiPeakTimeShare" style="color:#fdcb6e;">0%</strong> of focus</div>
+      </div>
+
+      <div class="kpi-card week-time">
+        <div class="kpi-top">
+          <span class="kpi-title">This Week's Focus</span>
+          <span class="kpi-icon">🗓️</span>
+        </div>
+        <div class="kpi-val"><span id="kpiThisWeekHours">0.0</span> <small style="font-size:13px; font-weight:600;">Hrs</small></div>
+        <div class="kpi-sub">Target: <strong id="kpiThisWeekTargetPct" style="color:#20bf6b;">0% (Goal: 20h)</strong></div>
+      </div>
+
+      <div class="kpi-card active-days">
+        <div class="kpi-top">
+          <span class="kpi-title">Active Study Days</span>
+          <span class="kpi-icon">📅</span>
+        </div>
+        <div class="kpi-val"><span id="kpiActiveDaysMonth">0</span> <small style="font-size:13px; font-weight:600;">Days</small></div>
+        <div class="kpi-sub">This Month: <strong id="kpiMonthlyConsistency" style="color:#00cec9;">0% Active</strong></div>
+      </div>
+
+      <div class="kpi-card top-subj">
+        <div class="kpi-top">
+          <span class="kpi-title">Top Focus Subject</span>
+          <span class="kpi-icon">🏆</span>
+        </div>
+        <div class="kpi-val"><span id="kpiTopSubject">--</span></div>
+        <div class="kpi-sub">Share: <strong id="kpiTopSubjectShare" style="color:#e056fd;">0%</strong> (<span id="kpiTopSubjectHours">0.0h</span>)</div>
+      </div>
+
+      <div class="kpi-card completion-rate">
+        <div class="kpi-top">
+          <span class="kpi-title">Completion Rate</span>
+          <span class="kpi-icon">🎯</span>
+        </div>
+        <div class="kpi-val"><span id="kpiCompletionRate">0%</span></div>
+        <div class="kpi-sub" id="kpiCompletionRateSub">Goal: 25h/week (Current: <strong id="kpiWeeklyCurrentHours" style="color:#55efc4;">0.0h</strong>)</div>
+      </div>
+    </section>
+
+    <!-- Comprehensive GitHub-Style Consistency Heatmap -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-title-icon">🗓️</span>
+          <span>Study Consistency Heatmap (අඛණ්ඩතා දර්ශකය)</span>
+        </div>
+        <div class="timeframe-tabs">
+          <button type="button" class="timeframe-tab-btn" onclick="setTimeframeWeeks('3M', this)">3 Months</button>
+          <button type="button" class="timeframe-tab-btn active" onclick="setTimeframeWeeks('6M', this)">6 Months</button>
+          <button type="button" class="timeframe-tab-btn" onclick="setTimeframeWeeks('1Y', this)">1 Year</button>
+          <button type="button" class="timeframe-tab-btn" onclick="setTimeframeWeeks('ALL', this)">🌐 All Time</button>
+        </div>
+      </div>
+
+      <div class="heatmap-outer-wrapper">
+        <div class="heatmap-layout">
+          <div class="heatmap-months-row" id="heatmapMonthsRow">
+            <!-- Dynamic month labels -->
+          </div>
+          <div class="heatmap-body">
+            <div class="heatmap-day-labels">
+              <span>M</span>
+              <span></span>
+              <span>W</span>
+              <span></span>
+              <span>F</span>
+              <span></span>
+              <span>S</span>
+            </div>
+            <div class="heatmap-matrix" id="fullHeatmapGrid">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="heatmap-legend-row">
+        <div>
+          <span>Total Active Days: <strong id="legendActiveDays" style="color:#f0f6fc;">0</strong> / <span id="legendTotalDays">182</span></span>
+        </div>
+        <div class="legend-scale-wrap">
+          <span>Less</span>
+          <div class="legend-boxes">
+            <span class="heat-cell level-0" title="0 mins"></span>
+            <span class="heat-cell level-1" title="1 - 25 mins"></span>
+            <span class="heat-cell level-2" title="26 - 50 mins"></span>
+            <span class="heat-cell level-3" title="51 - 80 mins"></span>
+            <span class="heat-cell level-4" title="81+ mins"></span>
+          </div>
+          <span>More</span>
+        </div>
+      </div>
+
+      <!-- Interactive Period Filter Tabs for Activity Detail (Item 6) -->
+      <div class="day-period-tabs-bar">
+        <button type="button" class="period-tab-btn active" onclick="setDetailPeriod('today', this)">📌 අද දින (Today)</button>
+        <button type="button" class="period-tab-btn" onclick="setDetailPeriod('7d', this)">🗓️ දින 7 (7 Days)</button>
+        <button type="button" class="period-tab-btn" onclick="setDetailPeriod('30d', this)">📅 දින 30 (30 Days)</button>
+        <button type="button" class="period-tab-btn" onclick="setDetailPeriod('1y', this)">📆 වසර 1 (1 Year)</button>
+        <button type="button" class="period-tab-btn" onclick="setDetailPeriod('all', this)">🌐 All Time</button>
+      </div>
+
+      <!-- Interactive Activity Summary Detail Banner -->
+      <div class="day-detail-banner" id="dayDetailBanner">
+        <div class="day-detail-left">
+          <span style="font-size: 20px;" id="detailPeriodIcon">📌</span>
+          <div>
+            <div class="day-detail-date" id="selectedDateTxt">අද දින තොරතුරු (Today)</div>
+            <div style="font-size: 10.5px; color: var(--text-dim);" id="selectedDateSessionsCount">0 Sessions Logged</div>
+          </div>
+          <div class="day-detail-mins" id="selectedDateMins">0 Mins Focused</div>
+        </div>
+        <div class="day-detail-subjects" id="selectedDateSubjects">
+          <!-- Subject tags -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Peak Study Time Periods Breakdown Card with Subject Tabs (Item 2 & 3) -->
+    <section class="section-card" id="sectionPeakTimeSlots">
+      <div class="section-header" style="flex-wrap: wrap; gap: 10px;">
+        <div class="section-title">
+          <span class="section-title-icon">🕒</span>
+          <span>වැඩිපුරම පාඩම් කළ කාල පරාසයන් (Peak Study Time Periods Analysis)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <!-- Timeframe filter tabs for Peak Study Slots -->
+          <div class="chart-filter-tabs" id="peakTimeframeTabs">
+            <button type="button" class="chart-tab-btn" onclick="setPeakTimeframe('1d', this)">1 Day</button>
+            <button type="button" class="chart-tab-btn" onclick="setPeakTimeframe('7d', this)">7 Days</button>
+            <button type="button" class="chart-tab-btn" onclick="setPeakTimeframe('1m', this)">1 Month</button>
+            <button type="button" class="chart-tab-btn" onclick="setPeakTimeframe('3m', this)">3 Months</button>
+            <button type="button" class="chart-tab-btn" onclick="setPeakTimeframe('1y', this)">1 Year</button>
+            <button type="button" class="chart-tab-btn active" onclick="setPeakTimeframe('all', this)">All Time</button>
+          </div>
+          <!-- Subject pills filter -->
+          <div class="slot-filter-tabs" id="slotFilterTabs" style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
+            <button type="button" class="slot-tab-btn active" onclick="setSlotFilter('ALL', this)">🌐 All Subjects</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Executive Highlight Banner -->
+      <div class="slot-highlight-banner" id="slotHighlightBanner">
+        <div class="slot-hl-icon">🏆</div>
+        <div class="slot-hl-content">
+          <div class="slot-hl-title" id="slotHighlightTitle">Peak Focus Window: විශ්ලේෂණය කරමින් පවතී...</div>
+          <div class="slot-hl-desc" id="slotHighlightDesc">
+            අධ්‍යයන කාල පරාසයන් ගණනය කරමින් පවතී...
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 Standard Time Slots Grid -->
+      <div class="time-slots-grid" id="timeSlotsGrid">
+        <!-- Rendered dynamically via renderPeakTimeSlots() based on active tab -->
+      </div>
+    </section>
+
+    <!-- Day-of-Week & Active Times Visualization (24 × 7 Habit Matrix) -->
+    <section class="section-card" id="sectionWeeklyHabitMatrix">
+      <div class="section-header" style="flex-wrap: wrap; gap: 10px;">
+        <div class="section-title">
+          <span class="section-title-icon">🗓️</span>
+          <span>සතිපතා දෛනික හා කාල පරාස අනුකෘතිය (24 × 7 Day-of-Week &amp; Active Times Matrix)</span>
+          <span id="habitMatrixTfSummary" style="font-size:11.5px; font-weight:600; color:var(--primary, #6c5ce7); margin-left: 6px;"></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <div class="chart-filter-tabs" id="habitMatrixTimeframeTabs">
+            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('1w', this)">1 Week</button>
+            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('1m', this)">1 Month</button>
+            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('3m', this)">3 Months</button>
+            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('6m', this)">6 Months</button>
+            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('1y', this)">1 Year</button>
+            <button type="button" class="chart-tab-btn active" onclick="setHabitMatrixTimeframe('all', this)">All Time</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="habit-matrix-outer-container">
+        <div class="habit-matrix-scroll-wrap" id="habitMatrixScrollWrap">
+          <table class="habit-matrix-24x7-table" id="habitMatrixTable">
+            <thead>
+              <tr id="habitMatrixHeaderRow">
+                <th class="habit-day-th-sticky">Day / Time</th>
+                <th>00:00</th><th>01:00</th><th>02:00</th><th>03:00</th><th>04:00</th><th>05:00</th>
+                <th>06:00</th><th>07:00</th><th>08:00</th><th>09:00</th><th>10:00</th><th>11:00</th>
+                <th>12:00</th><th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th><th>17:00</th>
+                <th>18:00</th><th>19:00</th><th>20:00</th><th>21:00</th><th>22:00</th><th>23:00</th>
+              </tr>
+            </thead>
+            <tbody id="habitMatrixBody">
+              <!-- Rendered via renderWeeklyHabitMatrix() -->
+            </tbody>
+          </table>
+        </div>
+        <div class="habit-matrix-legend-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px; padding: 4px 6px;">
+          <div id="habitActiveInfo" style="font-size:11.5px; color:var(--text-main); font-weight:600;">
+            💡 Hover or tap any cell to inspect focus time
+          </div>
+          <div style="display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-muted);">
+            <span>Less</span>
+            <span class="habit-cell-24 habit-cell-lvl-0" style="width:14px; height:14px; min-width:14px; display:inline-block;"></span>
+            <span class="habit-cell-24 habit-cell-lvl-1" style="width:14px; height:14px; min-width:14px; display:inline-block;"></span>
+            <span class="habit-cell-24 habit-cell-lvl-2" style="width:14px; height:14px; min-width:14px; display:inline-block;"></span>
+            <span class="habit-cell-24 habit-cell-lvl-3" style="width:14px; height:14px; min-width:14px; display:inline-block;"></span>
+            <span class="habit-cell-24 habit-cell-lvl-4" style="width:14px; height:14px; min-width:14px; display:inline-block;"></span>
+            <span>More</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Charts: Subject Breakdown & 14-Day Trend -->
+    <section class="charts-grid">
+      <!-- Subject Focus Distribution (Doughnut Chart) -->
+      <div class="chart-box">
+        <div class="chart-box-header">
+          <div class="chart-box-title">
+            <span>🍩</span> <span>විෂය අනුව කාලය බෙදීයාම (Subject Distribution)</span>
+          </div>
+          <div class="chart-filter-tabs" id="doughnutFilterTabs">
+            <button type="button" class="chart-tab-btn" onclick="setDoughnutTimeframe('7d', this)">7 Days</button>
+            <button type="button" class="chart-tab-btn" onclick="setDoughnutTimeframe('14d', this)">14 Days</button>
+            <button type="button" class="chart-tab-btn" onclick="setDoughnutTimeframe('1m', this)">1 Month</button>
+            <button type="button" class="chart-tab-btn" onclick="setDoughnutTimeframe('3m', this)">3 Months</button>
+            <button type="button" class="chart-tab-btn" onclick="setDoughnutTimeframe('1y', this)">1 Year</button>
+            <button type="button" class="chart-tab-btn active" onclick="setDoughnutTimeframe('all', this)">All Time</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="subjectDoughnutChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Focus Trend (Bar Chart) -->
+      <div class="chart-box">
+        <div class="chart-box-header">
+          <div class="chart-box-title">
+            <span>📊</span> <span id="trendChartTitle">දෛනික ප්‍රගතිය (14-Day Focus Trend)</span>
+          </div>
+          <div class="chart-filter-tabs" id="trendFilterTabs">
+            <button type="button" class="chart-tab-btn" onclick="setTrendTimeframe('7d', this)">7D</button>
+            <button type="button" class="chart-tab-btn active" onclick="setTrendTimeframe('14d', this)">14D</button>
+            <button type="button" class="chart-tab-btn" onclick="setTrendTimeframe('1m', this)">1M</button>
+            <button type="button" class="chart-tab-btn" onclick="setTrendTimeframe('3m', this)">3M</button>
+            <button type="button" class="chart-tab-btn" onclick="setTrendTimeframe('1y', this)">1Y</button>
+            <button type="button" class="chart-tab-btn" onclick="setTrendTimeframe('all', this)">All</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="dailyTrendBarChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Subject-wise Progress & Target Tracking Section (Item 1) -->
+    <section class="section-card" id="sectionSubjectProgress">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-title-icon">🎯</span>
+          <span>විෂය අනුව අධ්‍යයන ප්‍රගතිය (Subject-wise Study Progress &amp; Goal Distribution)</span>
+        </div>
+        <div class="header-extra-info">
+          <span class="meta-tag" style="font-size: 11.5px; color: var(--text-muted);">සම්පූර්ණ කාලය: <strong id="progTotalStudyTime" style="color:#f0f6fc;">0.0 Hrs</strong></span>
+        </div>
+      </div>
+
+      <!-- Combined Balance Distribution Bar -->
+      <div class="subj-balance-wrapper">
+        <div class="subj-balance-header">
+          <div>
+            <span>විෂය තුල්‍යතා අනුපාතය (Overall Subject Study Balance)</span>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;" id="subjBalanceTargetDesc">විෂයයන් අතර සමබර අධ්‍යයන කාල බෙදීයාම</div>
+          </div>
+          <div class="subj-balance-legend" id="subjBalanceLegend" style="overflow-x: auto; flex-wrap: wrap;">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+        <div class="subj-multi-track" id="subjMultiTrack">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Subject-wise Detailed Progress Cards Grid -->
+      <div class="subject-detailed-progress-grid" id="subjectDetailedProgressGrid">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- Detailed Focus Sessions History Table -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-title-icon">📜</span>
+          <span>අධ්‍යයන සැසි වාර්තාව (Session History Log)</span>
+        </div>
+      </div>
+
+      <div class="history-filter-bar">
+        <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+          <!-- Timeframe filter tabs for history log (Item 13.2) -->
+          <div class="history-timeframe-tabs">
+            <button type="button" class="hist-time-tab-btn" onclick="setHistoryTimeframe('1d', this)">1 Day</button>
+            <button type="button" class="hist-time-tab-btn" onclick="setHistoryTimeframe('7d', this)">7 Days</button>
+            <button type="button" class="hist-time-tab-btn" onclick="setHistoryTimeframe('14d', this)">14 Days</button>
+            <button type="button" class="hist-time-tab-btn" onclick="setHistoryTimeframe('1m', this)">1 Month</button>
+            <button type="button" class="hist-time-tab-btn" onclick="setHistoryTimeframe('3m', this)">3 Months</button>
+            <button type="button" class="hist-time-tab-btn" onclick="setHistoryTimeframe('1y', this)">1 Year</button>
+            <button type="button" class="hist-time-tab-btn active" onclick="setHistoryTimeframe('all', this)">All Time</button>
+          </div>
+          <!-- Subject pills filter -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div class="filter-pills-group" id="historyFilterPillsGroup" style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
+              <button type="button" class="filter-btn active" onclick="setHistoryFilter('ALL', this)">සියල්ල (All Subjects)</button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              Total Logged: <strong id="historyFilteredCount" style="color:#f0f6fc;">0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="sessions-table">
+          <thead>
+            <tr>
+              <th>ටයිමර ආරම්භය (Timer Start)</th>
+              <th>ටයිමර අවසානය (Timer Stop)</th>
+              <th>විෂය (Subject)</th>
+              <th>පාඩම / ඒකකය (Unit)</th>
+              <th>කාලය (Mins)</th>
+              <th>තත්ත්වය (Status)</th>
+              <th>ක්‍රියා</th>
+            </tr>
+          </thead>
+          <tbody id="sessionsTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 18px;">දත්ත ලබාගනිමින්...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Controls (Item 13) -->
+      <div class="pagination-bar" id="historyPaginationBar">
+        <button type="button" class="btn-page" id="btnPagePrev" onclick="prevHistoryPage()">← Previous</button>
+        <span class="page-indicator" id="historyPageIndicator">Page 1 of 1</span>
+        <button type="button" class="btn-page" id="btnPageNext" onclick="nextHistoryPage()">Next →</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Manual Session Entry Modal -->
+  <div class="modal-overlay" id="manualSessionModal" onclick="closeManualSessionModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-box-head">
+        <span>➕ අධ්‍යයන සැසියක් සටහන් කරන්න (Manual Entry)</span>
+        <button type="button" onclick="closeManualSessionModalDirect()" style="background:transparent; border:none; color:white; font-size:16px; cursor:pointer;">✕</button>
+      </div>
+      <div class="modal-box-body">
+        <div class="form-group">
+          <label class="form-label">විෂය (Subject) *</label>
+          <select id="manualSubjSelect" class="form-control" onchange="populateManualUnits()">
+            <!-- Populated dynamically via JS -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">පාඩම / ඒකකය (Full Lesson) *</label>
+          <select id="manualUnitSelect" class="form-control">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">ආරම්භක දිනය (Start Date) *</label>
+            <input type="date" id="manualDateInput" class="form-control" max="2026-10-04">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ආරම්භක වේලාව (Start Time) *</label>
+            <input type="time" id="manualStartTimeInput" class="form-control" value="09:00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">අධ්‍යයන කාලය (මිනිත්තු / Minutes) *</label>
+          <input type="number" id="manualDurationInput" class="form-control" value="50" min="5" max="360">
+        </div>
+        <div id="manualModalErrorMsg" style="color: #ff6b6b; font-size: 11px; font-weight: 700; margin-bottom: 8px; display: none;"></div>
+        <button type="button" onclick="saveManualSession()" style="width:100%; padding:10px; background:linear-gradient(135deg,#6c5ce7,#8c7ae6); color:white; font-weight:700; border:none; border-radius:9px; cursor:pointer; font-family:inherit; margin-top:6px;">
+          ✅ සුරකින්න (Save Session)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security PIN Verification Modal -->
+  <div class="modal-overlay" id="securityPinModal" onclick="closePinModal(event)">
+    <div class="modal-box" id="pinModalBox" onclick="event.stopPropagation()" style="max-width: 370px; text-align: center;">
+      <div class="modal-box-head">
+        <span style="display:flex; align-items:center; gap:8px;">🔒 ආරක්ෂක PIN අංකය (Security PIN)</span>
+        <button type="button" onclick="cancelPinModal()" style="background:transparent; border:none; color:white; font-size:16px; cursor:pointer;">✕</button>
+      </div>
+      <div class="modal-box-body" style="padding: 24px 20px;">
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          මෙම ක්‍රියාව සිදුකිරීම සඳහා කරුණාකර ඔබගේ ඉලක්කම් 4 ක ආරක්ෂක PIN අංකය ඇතුළත් කරන්න.
+        </p>
+        <div style="margin-bottom: 12px;">
+          <input type="password" id="pinInput" class="pin-mask-input" maxlength="4" placeholder="••••" autocomplete="off" />
+        </div>
+        <div id="pinErrorMsg" style="color: #ff6b6b; font-size: 11.5px; font-weight: 700; min-height: 20px; margin-bottom: 14px; display: none;">
+          වලංගු නොවන PIN අංකයකි / Invalid PIN
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 6px;">
+          <button type="button" id="pinCancelBtn" onclick="cancelPinModal()" style="flex: 1; padding: 10px 12px; background: rgba(255, 255, 255, 0.08); color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;">
+            අවලංගු කරන්න (Cancel)
+          </button>
+          <button type="button" id="pinConfirmBtn" onclick="confirmPinModal()" style="flex: 1; padding: 10px 12px; background: linear-gradient(135deg, #6c5ce7, #8c7ae6); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;">
+            තහවුරු කරන්න (Confirm)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Session Duration Modal -->
+  <div class="modal-overlay" id="editDurationModal" onclick="closeEditDurationModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width: 380px;">
+      <div class="modal-box-head">
+        <span>✏️ කාලය සංස්කරණය (Edit Duration)</span>
+        <button type="button" onclick="closeEditDurationModalDirect()" style="background:transparent; border:none; color:white; font-size:16px; cursor:pointer;">✕</button>
+      </div>
+      <div class="modal-box-body" style="padding: 20px;">
+        <div class="form-group">
+          <label class="form-label">සැසියේ නිවැරදි අධ්‍යයන කාලය (මිනිත්තු / Minutes 1 - 480) *</label>
+          <input type="number" id="editDurationInput" class="form-control" min="1" max="480" />
+        </div>
+        <div id="editDurationErrorMsg" style="color: #ff6b6b; font-size: 11px; font-weight: 700; margin-bottom: 12px; display: none;">
+          කරුණාකර වලංගු මිනිත්තු සංඛ්‍යාවක් ලබාදෙන්න (1 - 480).
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+          <button type="button" onclick="closeEditDurationModalDirect()" style="padding: 8px 14px; background: rgba(255, 255, 255, 0.08); color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;">
+            අවලංගු කරන්න (Cancel)
+          </button>
+          <button type="button" id="btnSaveEditedDuration" onclick="saveEditedDurationDirect()" style="padding: 8px 16px; background: linear-gradient(135deg, #6c5ce7, #8c7ae6); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;">
+            සුරකින්න (Save)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Default Grade 9 Subjects Configuration (13 Subjects Engine)
+    const DEFAULT_G9_SUBJECTS = [
+      { code: 'MATH', nameSi: 'ගණිතය', nameEn: 'Mathematics', color: '#0984e3', icon: '📐', active: true },
+      { code: 'SCI', nameSi: 'විද්‍යාව', nameEn: 'Science', color: '#00b894', icon: '🔬', active: true },
+      { code: 'SIN', nameSi: 'සිංහල', nameEn: 'Sinhala', color: '#e17055', icon: '📘', active: true },
+      { code: 'ENG', nameSi: 'ඉංග්‍රීසි', nameEn: 'English', color: '#6c5ce7', icon: '🔤', active: true },
+      { code: 'BUD', nameSi: 'බුද්ධ ධර්මය', nameEn: 'Buddhism', color: '#f39c12', icon: '☸️', active: true },
+      { code: 'HIST', nameSi: 'ඉතිහාසය', nameEn: 'History', color: '#d35400', icon: '🏛️', active: true },
+      { code: 'GEO', nameSi: 'භූගෝල විද්‍යාව', nameEn: 'Geography', color: '#27ae60', icon: '🌍', active: true },
+      { code: 'CIV', nameSi: 'පුරවැසි අධ්‍යාපනය', nameEn: 'Civic Education', color: '#8e44ad', icon: '⚖️', active: true },
+      { code: 'HLTH', nameSi: 'සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය', nameEn: 'Health & PE', color: '#e84393', icon: '🏃‍♀️', active: true },
+      { code: 'ICT', nameSi: 'තොරතුරු තාක්ෂණය', nameEn: 'ICT', color: '#20bf6b', icon: '💻', active: true },
+      { code: 'TAM', nameSi: 'දෙමළ', nameEn: 'Tamil', color: '#00cec9', icon: '🗣️', active: true },
+      { code: 'AES', nameSi: 'සෞන්දර්ය විෂය', nameEn: 'Aesthetics', color: '#fd79a8', icon: '🎨', active: true },
+      { code: 'PTS', nameSi: 'ප්‍රායෝගික හා තාක්ෂණික කුසලතා', nameEn: 'PTS', color: '#636e72', icon: '🛠️', active: true }
+    ];
+
+    let g9SubjectsCache = null;
+    function loadG9Subjects() {
+      try {
+        const stored = localStorage.getItem('g9_subjects_config');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed.some(s => s.code === 'MATH' || s.code === 'SCI')) {
+            g9SubjectsCache = parsed;
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse g9_subjects_config:', e);
+      }
+      g9SubjectsCache = JSON.parse(JSON.stringify(DEFAULT_G9_SUBJECTS));
+      try { localStorage.setItem('g9_subjects_config', JSON.stringify(g9SubjectsCache)); } catch(_) {}
+      return DEFAULT_G9_SUBJECTS;
+    }
+
+    function getActiveSubjects() {
+      const subjs = g9SubjectsCache || loadG9Subjects();
+      return subjs.filter(s => s.active !== false);
+    }
+
+    function getSubjectMeta(code) {
+      if (!code) return { code: 'OTHER', nameSi: 'වෙනත්', nameEn: 'Other', color: '#636e72', icon: '📚' };
+      const c = String(code).toUpperCase().trim();
+      const subjs = g9SubjectsCache || loadG9Subjects();
+      const found = subjs.find(s => s.code.toUpperCase() === c);
+      if (found) return found;
+      return { code: c, nameSi: c, nameEn: c, color: '#0984e3', icon: '📘' };
+    }
+
+    let cachedCanonicalUnits = null;
+    async function loadCanonicalUnits() {
+      if (cachedCanonicalUnits) return cachedCanonicalUnits;
+      const sb = getSupabase();
+      if (navigator.onLine && sb) {
+        try {
+          const { data, error } = await sb.from('canonical_syllabus').select('*').order('sort_order', { ascending: true });
+          if (!error && data && data.length > 0) {
+            const map = {};
+            data.forEach(item => {
+              const subj = (item.subject || '').toUpperCase().trim();
+              if (!map[subj]) map[subj] = [];
+              const uNum = (item.unit_number !== undefined && item.unit_number !== null) ? Number(item.unit_number) : (map[subj].length + 1);
+              const uName = item.unit_name || item.sub_lesson_title || `Unit ${uNum}`;
+              map[subj].push({ unit_number: uNum, unit_name: uName });
+            });
+            cachedCanonicalUnits = map;
+            try { localStorage.setItem('g9_canonical_units_cache', JSON.stringify(data)); } catch(e) {}
+            return map;
+          }
+        } catch(e) { console.warn('Failed to load canonical_syllabus:', e); }
+      }
+      try {
+        const cached = localStorage.getItem('g9_canonical_units_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const map = {};
+            parsed.forEach(item => {
+              const subj = (item.subject || '').toUpperCase().trim();
+              if (!map[subj]) map[subj] = [];
+              const uNum = (item.unit_number !== undefined && item.unit_number !== null) ? Number(item.unit_number) : (Number(item.unitNum) || (map[subj].length + 1));
+              const uName = item.unit_name || item.unit || item.sub_lesson_title || `Unit ${uNum}`;
+              map[subj].push({ unit_number: uNum, unit_name: uName });
+            });
+            cachedCanonicalUnits = map;
+            return cachedCanonicalUnits;
+          } else if (typeof parsed === 'object' && parsed !== null) {
+            cachedCanonicalUnits = parsed;
+            return cachedCanonicalUnits;
+          }
+        }
+      } catch(e) {}
+      return null;
+    }
+
+    function updateFilterButtons() {
+      const activeSubjs = getActiveSubjects();
+
+      // 1. Slot Filter Tabs
+      const slotContainer = document.getElementById('slotFilterTabs');
+      if (slotContainer) {
+        let btns = `<button type="button" class="slot-tab-btn ${currentSlotFilter === 'ALL' ? 'active' : ''}" onclick="setSlotFilter('ALL', this)">🌐 All Subjects</button>`;
+        activeSubjs.forEach(s => {
+          btns += `<button type="button" class="slot-tab-btn ${currentSlotFilter === s.code ? 'active' : ''}" onclick="setSlotFilter('${s.code}', this)">${s.icon || '📘'} ${s.code}</button>`;
+        });
+        slotContainer.innerHTML = btns;
+      }
+
+      // 2. History Filter Tabs
+      const histContainer = document.getElementById('historyFilterPillsGroup');
+      if (histContainer) {
+        let btns = `<button type="button" class="filter-btn ${currentHistoryFilter === 'ALL' ? 'active' : ''}" onclick="setHistoryFilter('ALL', this)">සියල්ල (All Subjects)</button>`;
+        activeSubjs.forEach(s => {
+          btns += `<button type="button" class="filter-btn ${currentHistoryFilter === s.code ? 'active' : ''}" onclick="setHistoryFilter('${s.code}', this)">${s.icon || '📘'} ${s.code}</button>`;
+        });
+        histContainer.innerHTML = btns;
+      }
+
+      // 3. Manual Subject Select
+      populateManualSubjects();
+    }
+
+    function populateManualSubjects() {
+      const select = document.getElementById('manualSubjSelect');
+      if (!select) return;
+      const cur = select.value;
+      const activeSubjs = getActiveSubjects();
+      select.innerHTML = activeSubjs.map(s => {
+        return `<option value="${s.code}">${s.icon || '📘'} ${s.code} - ${s.nameSi || s.code}</option>`;
+      }).join('');
+      if (cur && activeSubjs.some(s => s.code === cur)) {
+        select.value = cur;
+      }
+    }
+
+    // Supabase Client Helper (use sbClient to prevent collision with window.supabase from CDN)
+    const SUPABASE_URL = (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__.SUPABASE_URL) || 'https://klcbypzapfojjakoehgx.supabase.co';
+    const SUPABASE_ANON_KEY = (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__.SUPABASE_ANON_KEY) || 'sb_publishable_hg4IZNmibddbNsxe5t0aZQ_1XUUBxBp';
+    let sbClient = null;
+
+    function getSupabase() {
+      if (!sbClient && window.supabase && typeof window.supabase.createClient === 'function' && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+          sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+          });
+        } catch (e) {
+          console.warn('Failed to initialize Supabase client:', e);
+        }
+      }
+      return sbClient;
+    }
+    getSupabase();
+
+    // Supabase Realtime Multi-Device Sync Channel
+    let realtimeTrackerChannel = null;
+    let liveTimerStreamChannel = null;
+    let localTimerBroadcast = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('live_timer_stream') : null;
+    let liveTimerHeartbeatTimer = null;
+
+    function initRealtimeSync() {
+      const sb = getSupabase();
+      if (!sb || !navigator.onLine) return;
+
+      // 1. Real-time Multi-Device Synchronization Channel (postgres_changes)
+      if (!realtimeTrackerChannel) {
+        try {
+          realtimeTrackerChannel = sb.channel('realtime_study_tracker')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'study_timer_sessions' }, (payload) => {
+              handleRealtimeDatabaseChange(payload);
+            })
+            .subscribe((status, err) => {
+              if (status === 'SUBSCRIBED') {
+                console.log('✅ Supabase Realtime connected on table study_timer_sessions (realtime_study_tracker)');
+              } else if (status === 'CHANNEL_ERROR') {
+                console.warn('Supabase Realtime channel error:', err);
+              }
+            });
+        } catch (e) {
+          console.warn('Failed to initialize Supabase Realtime database listener:', e);
+        }
+      }
+
+      // 2. Real-time Active Timer State Broadcast Channel (live_timer_stream)
+      initLiveTimerStream();
+    }
+
+    function initLiveTimerStream() {
+      const sb = getSupabase();
+      if (sb && !liveTimerStreamChannel && navigator.onLine) {
+        try {
+          liveTimerStreamChannel = sb.channel('live_timer_stream', {
+            config: { broadcast: { ack: false } }
+          });
+          liveTimerStreamChannel
+            .on('broadcast', { event: 'timer_state' }, ({ payload }) => {
+              handleLiveTimerBroadcast(payload);
+            })
+            .subscribe();
+        } catch (e) {
+          console.warn('Failed to subscribe live_timer_stream in analytics:', e);
+        }
+      }
+
+      // Cross-tab local broadcast listener
+      if (localTimerBroadcast) {
+        localTimerBroadcast.onmessage = (e) => {
+          handleLiveTimerBroadcast(e.data);
+        };
+      }
+
+      // LocalStorage storage listener fallback
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'al_live_timer_state') {
+          if (e.newValue) {
+            try { handleLiveTimerBroadcast(JSON.parse(e.newValue)); } catch (_) {}
+          } else {
+            handleLiveTimerBroadcast({ state: 'STOP' });
+          }
+        }
+      });
+
+      // Check initial cached state on load
+      try {
+        const saved = localStorage.getItem('al_live_timer_state');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Date.now() - (parsed.timestamp || 0) < 30000 && parsed.state !== 'STOP' && parsed.state !== 'FINISH') {
+            handleLiveTimerBroadcast(parsed);
+          }
+        }
+      } catch (_) {}
+    }
+
+    function handleLiveTimerBroadcast(data) {
+      if (!data) return;
+      const banner = document.getElementById('activeTimerLiveBanner');
+      const bannerText = document.getElementById('activeTimerLiveBannerText');
+      if (!banner) return;
+
+      clearTimeout(liveTimerHeartbeatTimer);
+
+      if (data.state === 'STOP' || data.state === 'FINISH' || data.status === 'completed') {
+        banner.style.display = 'none';
+        return;
+      }
+
+      const isPaused = (data.state === 'PAUSE' || data.status === 'paused');
+      const isInProgress = (data.state === 'START' || data.state === 'TICK' || data.status === 'in_progress');
+
+      if (isPaused || isInProgress) {
+        const subj = data.subject || 'ICT';
+        const unit = data.unit || data.unit_name || 'සාමාන්‍ය පුනරීක්ෂණ';
+
+        if (bannerText) {
+          if (isPaused) {
+            bannerText.innerHTML = `⏸️ අධ්‍යයන සැසිය තාවකාලිකව නවතා ඇත (Paused) — <strong>${escapeHtml(subj)}</strong> | ${escapeHtml(unit)}`;
+          } else {
+            bannerText.innerHTML = `🔴 සක්‍රීය අධ්‍යයන සැසියක් ක්‍රියාත්මක වෙමින් පවතී — <strong>${escapeHtml(subj)}</strong> | ${escapeHtml(unit)}`;
+          }
+        }
+        banner.style.display = 'flex';
+
+        // Auto-hide if no heartbeat/TICK received for 20 seconds
+        liveTimerHeartbeatTimer = setTimeout(() => {
+          banner.style.display = 'none';
+        }, 20000);
+      }
+    }
+
+    async function handleRealtimeDatabaseChange(payload) {
+      if (!payload) return;
+      const eventType = payload.eventType;
+      const banner = document.getElementById('activeTimerLiveBanner');
+
+      if (eventType === 'DELETE') {
+        const delId = (payload.old && payload.old.id) || (payload.new && payload.new.id);
+        if (banner) banner.style.display = 'none';
+        if (!delId) return;
+
+        allSessions = allSessions.filter(s => s.id !== delId);
+        saveCachedSessions(allSessions);
+
+        try {
+          const db = await openOfflineDB();
+          if (db) {
+            const sName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+            const tx = db.transaction(sName, 'readwrite');
+            tx.objectStore(sName).delete(delId);
+          }
+        } catch (_) {}
+
+        // Reactive re-render without full page reload
+        renderKPIs();
+        renderComprehensiveHeatmap();
+        renderPeakTimeSlots();
+        renderWeeklyHabitMatrix();
+        renderSubjectProgressSection();
+        renderVisualCharts();
+        renderSessionsTable();
+      } else if (eventType === 'INSERT' || eventType === 'UPDATE') {
+        const record = payload.new;
+        if (!record || !record.id) return;
+
+        // Live banner state handling based on database row status
+        if (record.status === 'in_progress') {
+          handleLiveTimerBroadcast({
+            state: 'START',
+            status: 'in_progress',
+            subject: record.subject,
+            unit: record.unit_name || (record.unit_number ? `Unit ${record.unit_number}` : 'සාමාන්‍ය පුනරීක්ෂණ')
+          });
+        } else if (record.status === 'paused') {
+          handleLiveTimerBroadcast({
+            state: 'PAUSE',
+            status: 'paused',
+            subject: record.subject,
+            unit: record.unit_name || (record.unit_number ? `Unit ${record.unit_number}` : 'සාමාන්‍ය පුනරීක්ෂණ')
+          });
+        } else if (record.status === 'completed') {
+          if (banner) banner.style.display = 'none';
+        }
+
+        // Only completed records qualify for study analytics calculations
+        if (!isValidTimerSession(record)) {
+          // If this session previously existed in allSessions (e.g. state changed), purge it
+          const prevIdx = allSessions.findIndex(s => s.id === record.id);
+          if (prevIdx !== -1) {
+            allSessions.splice(prevIdx, 1);
+            saveCachedSessions(allSessions);
+            renderKPIs();
+            renderComprehensiveHeatmap();
+            renderPeakTimeSlots();
+            renderWeeklyHabitMatrix();
+            renderSubjectProgressSection();
+            renderVisualCharts();
+            renderSessionsTable();
+          }
+          return;
+        }
+
+        const idx = allSessions.findIndex(s => s.id === record.id);
+        if (idx !== -1) {
+          allSessions[idx] = { ...allSessions[idx], ...record, synced: true };
+        } else {
+          allSessions.unshift({ ...record, synced: true });
+        }
+
+        allSessions.sort((a, b) => getSessionTimestamp(b) - getSessionTimestamp(a));
+        saveCachedSessions(allSessions);
+
+        try {
+          const db = await openOfflineDB();
+          if (db) {
+            const sName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+            const tx = db.transaction(sName, 'readwrite');
+            tx.objectStore(sName).put({ ...record, synced: true });
+          }
+        } catch (_) {}
+
+        // Reactive re-render without full page reload
+        renderKPIs();
+        renderComprehensiveHeatmap();
+        renderPeakTimeSlots();
+        renderWeeklyHabitMatrix();
+        renderSubjectProgressSection();
+        renderVisualCharts();
+        renderSessionsTable();
+      }
+      try { await updateSyncUI(); } catch (_) {}
+    }
+
+    function handleBackToDashboard(e) {
+      if (e) e.preventDefault();
+      if (window.opener && !window.opener.closed) {
+        try { window.opener.focus(); } catch (_) {}
+        window.close();
+      } else {
+        window.location.href = './';
+      }
+    }
+    window.handleBackToDashboard = handleBackToDashboard;
+
+    // Completely eliminate native browser alert and prompt popups
+    window.alert = function(msg) { console.warn('Native alert blocked:', msg); };
+    window.prompt = function(msg) { console.warn('Native prompt blocked:', msg); return null; };
+
+    // State
+    let allSessions = [];
+    let currentHeatmapWeeks = '6M'; // Strictly default to 6 Months
+    let currentPeakTimeframe = 'all'; // Default to All Time for Peak Study Time
+    let currentDoughnutTimeframe = 'all'; // Default to All Time
+    let currentTrendTimeframe = '14d'; // Default to 14 Days
+    let currentHabitMatrixTimeframe = 'all'; // Default to All Time for 24x7 Matrix
+    let currentHistoryFilter = 'ALL';
+    let currentHistoryTimeframe = 'all';
+    let currentHistoryPage = 1;
+    const HISTORY_PAGE_SIZE = 10;
+    let currentSlotFilter = 'ALL';
+    let currentDetailPeriod = 'today';
+    let subjectChartInstance = null;
+    let trendChartInstance = null;
+    let subjectCoverageUnits = {};
+
+    // Helpers: Local Date and Time Extractors
+    function getLocalDateString(d = new Date()) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getLocalTimeString(d = new Date()) {
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    // Helper: Session Timestamp Extractor
+    function getSessionTimestamp(s) {
+      if (!s) return 0;
+      if (s.start_time) {
+        const t = new Date(s.start_time).getTime();
+        if (!isNaN(t) && t > 0) return t;
+      }
+      const dateStr = s.timer_start_date || s.session_date;
+      const timeStr = s.timer_start_time || '00:00:00';
+      if (dateStr) {
+        const fullTimeStr = timeStr.length === 5 ? timeStr + ':00' : timeStr;
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const [hr, min, sec] = fullTimeStr.split(':').map(Number);
+        const localD = new Date(y, (m || 1) - 1, d || 1, hr || 0, min || 0, sec || 0);
+        const t = localD.getTime();
+        if (!isNaN(t) && t > 0) return t;
+      }
+      if (s.created_at) {
+        const t = new Date(s.created_at).getTime();
+        if (!isNaN(t) && t > 0) return t;
+      }
+      return 0;
+    }
+
+    // 1. Custom Security PIN Verification Modal (Item 1: Eliminated window.prompt/alert)
+    let pinResolver = null;
+
+    function requestPinVerification() {
+      return new Promise((resolve) => {
+        pinResolver = resolve;
+        const modal = document.getElementById('securityPinModal');
+        const input = document.getElementById('pinInput');
+        const err = document.getElementById('pinErrorMsg');
+        const box = document.getElementById('pinModalBox');
+        if (err) err.style.display = 'none';
+        if (box) box.classList.remove('pin-shake');
+        if (input) {
+          input.value = '';
+        }
+        if (modal) {
+          modal.style.display = 'flex';
+          setTimeout(() => { if (input) input.focus(); }, 60);
+        }
+      });
+    }
+
+    function confirmPinModal() {
+      const input = document.getElementById('pinInput');
+      const err = document.getElementById('pinErrorMsg');
+      const box = document.getElementById('pinModalBox');
+      const val = (input ? input.value : '').trim();
+
+      if (val === '3408') {
+        const modal = document.getElementById('securityPinModal');
+        if (modal) modal.style.display = 'none';
+        if (pinResolver) {
+          const r = pinResolver;
+          pinResolver = null;
+          r(true);
+        }
+      } else {
+        if (err) {
+          err.textContent = 'වලංගු නොවන PIN අංකයකි / Invalid PIN';
+          err.style.display = 'block';
+        }
+        if (box) {
+          box.classList.remove('pin-shake');
+          void box.offsetWidth;
+          box.classList.add('pin-shake');
+        }
+        if (input) {
+          input.value = '';
+          input.focus();
+        }
+      }
+    }
+
+    function cancelPinModal() {
+      const modal = document.getElementById('securityPinModal');
+      if (modal) modal.style.display = 'none';
+      if (pinResolver) {
+        const r = pinResolver;
+        pinResolver = null;
+        r(false);
+      }
+    }
+
+    function closePinModal(e) {
+      const modal = document.getElementById('securityPinModal');
+      if (e && e.target === modal) {
+        cancelPinModal();
+      }
+    }
+
+    // Modal Edit Duration (Replaces window.prompt/alert in editSessionDuration)
+    let editingSessionId = null;
+
+    function openEditDurationModal(sess) {
+      editingSessionId = sess.id;
+      const modal = document.getElementById('editDurationModal');
+      const input = document.getElementById('editDurationInput');
+      const err = document.getElementById('editDurationErrorMsg');
+      if (err) err.style.display = 'none';
+      if (input) input.value = sess.duration_minutes || 50;
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => { if (input) { input.focus(); input.select(); } }, 60);
+      }
+    }
+
+    function closeEditDurationModalDirect() {
+      const modal = document.getElementById('editDurationModal');
+      if (modal) modal.style.display = 'none';
+      editingSessionId = null;
+    }
+
+    function closeEditDurationModal(e) {
+      const modal = document.getElementById('editDurationModal');
+      if (e && e.target === modal) {
+        closeEditDurationModalDirect();
+      }
+    }
+
+    async function saveEditedDurationDirect() {
+      if (!editingSessionId) return;
+      const sess = allSessions.find(s => s.id === editingSessionId);
+      if (!sess) return;
+      const input = document.getElementById('editDurationInput');
+      const err = document.getElementById('editDurationErrorMsg');
+      const num = parseInt(input ? input.value : '', 10);
+      if (isNaN(num) || num <= 0 || num > 480) {
+        if (err) err.style.display = 'block';
+        return;
+      }
+      if (err) err.style.display = 'none';
+      closeEditDurationModalDirect();
+
+      sess.duration_minutes = num;
+      sess.synced = false;
+      saveCachedSessions(allSessions);
+
+      try {
+        const db = await openOfflineDB();
+        if (db) {
+          const storeName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+          const tx = db.transaction(storeName, 'readwrite');
+          tx.objectStore(storeName).put(sess);
+        }
+      } catch (_) {}
+
+      const payload = {
+        id: sess.id,
+        duration_minutes: num
+      };
+
+      const sb = getSupabase();
+      if (navigator.onLine && sb) {
+        try {
+          let { error } = await sb.from('study_timer_sessions').update({ duration_minutes: num }).eq('id', sess.id);
+          if (error) {
+            const fbRes = await sb.from('study_sessions').update({ duration_minutes: num }).eq('id', sess.id);
+            if (fbRes.error) throw fbRes.error;
+          }
+          sess.synced = true;
+          saveCachedSessions(allSessions);
+          try {
+            const db = await openOfflineDB();
+            if (db) {
+              const storeName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+              const tx = db.transaction(storeName, 'readwrite');
+              tx.objectStore(storeName).put(sess);
+            }
+          } catch (_) {}
+        } catch (err) {
+          console.warn('Direct update failed, enqueuing to sync_queue:', err);
+          await enqueueSyncTask('UPDATE', 'study_timer_sessions', payload);
+        }
+      } else {
+        await enqueueSyncTask('UPDATE', 'study_timer_sessions', payload);
+      }
+
+      await refreshAnalyticsData();
+    }
+
+    // Study Timer Start Benchmark (Tracking strictly begins from today: 2026-10-04)
+    const TRACKING_START_DATE = '2026-10-04';
+    const TIMER_STORAGE_KEY = 'al_study_timer_sessions';
+
+    function isValidTimerSession(s) {
+      if (!s || !s.id) return false;
+      // Absolutely exclude legacy subjects like SFT or ET
+      const subj = (s.subject || '').toUpperCase().trim();
+      if (subj === 'SFT' || subj === 'ET') {
+        return false;
+      }
+      // Absolutely exclude any old synthesized paper attempts from other tables
+      if (typeof s.id === 'string' && (s.id.startsWith('up_') || s.id.startsWith('fp_') || s.id.startsWith('sr_'))) {
+        return false;
+      }
+      // Calculate only completed fully once (must not be an interrupted/active draft)
+      if (s.status && s.status !== 'completed') {
+        return false;
+      }
+      // Exclude empty sessions (0 mins & 0 secs)
+      const mins = Number(s.duration_minutes) || 0;
+      const secs = Number(s.duration_seconds) || 0;
+      if (mins <= 0 && secs <= 0) {
+        return false;
+      }
+      // Exclude sessions with missing dates
+      const dStr = s.timer_start_date || s.timer_stop_date || s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+      if (!dStr) {
+        return false;
+      }
+      return true;
+    }
+
+    // Helper: Local Storage access for study timer sessions
+    function getCachedSessions() {
+      try {
+        const raw = localStorage.getItem(TIMER_STORAGE_KEY) || localStorage.getItem('al_study_sessions_cache');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) return parsed.filter(isValidTimerSession);
+        }
+      } catch (e) {}
+      return [];
+    }
+
+    function saveCachedSessions(sessions) {
+      try {
+        localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(sessions));
+        localStorage.setItem('al_study_sessions_cache', JSON.stringify(sessions));
+      } catch (e) {}
+    }
+
+    // Helper: Generate RFC4122 v4 UUID (browser native or fallback)
+    function generateUUID() {
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+      }
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    // Helper: IndexedDB access (dedicated study_timer_sessions store & outbox queue)
+    function openOfflineDB() {
+      return new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        const req = indexedDB.open('al_study_tracker_offline_db', 2);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('study_timer_sessions')) {
+            db.createObjectStore('study_timer_sessions', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('study_sessions')) {
+            db.createObjectStore('study_sessions', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('sync_queue')) {
+            db.createObjectStore('sync_queue', { keyPath: 'queue_id', autoIncrement: true });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    // Helper: Get count of pending tasks in outbox queue
+    async function getPendingSyncCount() {
+      try {
+        const db = await openOfflineDB();
+        if (!db || !db.objectStoreNames.contains('sync_queue')) return 0;
+        return new Promise((resolve) => {
+          const tx = db.transaction('sync_queue', 'readonly');
+          const store = tx.objectStore('sync_queue');
+          const countReq = store.count();
+          countReq.onsuccess = () => resolve(countReq.result || 0);
+          countReq.onerror = () => resolve(0);
+        });
+      } catch (_) {
+        return 0;
+      }
+    }
+
+    // Helper: Enqueue failed/offline mutation into sync_queue with task coalescing
+    async function enqueueSyncTask(action, table, payload, targetId) {
+      const sessId = targetId || (payload && payload.id);
+      try {
+        const db = await openOfflineDB();
+        if (!db || !db.objectStoreNames.contains('sync_queue')) return false;
+        return new Promise((resolve) => {
+          const tx = db.transaction('sync_queue', 'readwrite');
+          const store = tx.objectStore('sync_queue');
+          const getAllReq = store.getAll();
+
+          getAllReq.onsuccess = () => {
+            const items = getAllReq.result || [];
+            const targetTable = table || 'study_timer_sessions';
+
+            if (action === 'UPDATE') {
+              const pendingInsert = items.find(t => t.table === targetTable && (t.id === sessId || (t.payload && t.payload.id === sessId)) && t.action === 'INSERT');
+              if (pendingInsert) {
+                pendingInsert.payload = { ...pendingInsert.payload, ...payload };
+                pendingInsert.data = pendingInsert.payload;
+                store.put(pendingInsert);
+                return;
+              }
+
+              const pendingUpdate = items.find(t => t.table === targetTable && (t.id === sessId || (t.payload && t.payload.id === sessId)) && t.action === 'UPDATE');
+              if (pendingUpdate) {
+                pendingUpdate.payload = { ...pendingUpdate.payload, ...payload };
+                pendingUpdate.data = pendingUpdate.payload;
+                store.put(pendingUpdate);
+                return;
+              }
+
+              const newTask = {
+                action: 'UPDATE',
+                table: targetTable,
+                id: sessId,
+                payload: payload,
+                data: payload,
+                created_at: new Date().toISOString()
+              };
+              store.add(newTask);
+              return;
+
+            } else if (action === 'DELETE') {
+              const pendingInsert = items.find(t => t.table === targetTable && (t.id === sessId || (t.payload && t.payload.id === sessId)) && t.action === 'INSERT');
+              items.filter(t => t.table === targetTable && (t.id === sessId || (t.payload && t.payload.id === sessId)))
+                   .forEach(t => store.delete(t.queue_id));
+
+              if (pendingInsert) {
+                return;
+              }
+
+              const delTask = {
+                action: 'DELETE',
+                table: targetTable,
+                id: sessId,
+                payload: { id: sessId },
+                data: { id: sessId },
+                created_at: new Date().toISOString()
+              };
+              store.add(delTask);
+              return;
+
+            } else {
+              const existingInsert = items.find(t => t.table === targetTable && (t.id === sessId || (t.payload && t.payload.id === sessId)) && t.action === 'INSERT');
+              if (existingInsert) {
+                existingInsert.payload = { ...existingInsert.payload, ...payload };
+                existingInsert.data = existingInsert.payload;
+                store.put(existingInsert);
+                return;
+              }
+
+              const item = {
+                action: 'INSERT',
+                table: targetTable,
+                id: sessId,
+                payload: payload,
+                data: payload,
+                created_at: new Date().toISOString()
+              };
+              store.add(item);
+              return;
+            }
+          };
+
+          tx.oncomplete = () => {
+            updateSyncUI();
+            resolve(true);
+          };
+          tx.onerror = () => resolve(false);
+          getAllReq.onerror = () => resolve(false);
+        });
+      } catch (e) {
+        console.error('enqueueSyncTask error:', e);
+        return false;
+      }
+    }
+
+    // FIFO Outbox Queue Runner: Processes pending tasks sequentially
+    let isSyncingQueue = false;
+
+    async function processSyncQueue() {
+      if (isSyncingQueue || !navigator.onLine) return;
+      const sb = getSupabase();
+      if (!sb) return;
+
+      isSyncingQueue = true;
+      await updateSyncUI('syncing');
+
+      try {
+        const db = await openOfflineDB();
+        if (!db || !db.objectStoreNames.contains('sync_queue')) {
+          return;
+        }
+
+        const tasks = await new Promise((resolve) => {
+          const tx = db.transaction('sync_queue', 'readonly');
+          const store = tx.objectStore('sync_queue');
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+
+        if (!tasks || tasks.length === 0) {
+          return;
+        }
+
+        // Strictly chronological FIFO order
+        tasks.sort((a, b) => (a.queue_id || 0) - (b.queue_id || 0));
+
+        for (const task of tasks) {
+          const { queue_id, action, table, payload, id } = task;
+          const targetId = id || (payload && payload.id);
+          let success = false;
+
+          try {
+            if (action === 'INSERT') {
+              const targetTable = table || 'study_timer_sessions';
+              const insertData = {
+                id: targetId,
+                subject: payload.subject,
+                unit_number: payload.unit_number !== undefined ? Number(payload.unit_number) : 0,
+                unit_name: payload.unit_name || null,
+                timer_start_date: payload.timer_start_date,
+                timer_start_time: payload.timer_start_time || null,
+                timer_stop_date: payload.timer_stop_date || null,
+                timer_stop_time: payload.timer_stop_time || null,
+                start_time: payload.start_time || null,
+                end_time: payload.end_time || null,
+                duration_seconds: payload.duration_seconds !== undefined ? Number(payload.duration_seconds) : (Number(payload.duration_minutes || 0) * 60),
+                duration_minutes: Number(payload.duration_minutes) || 50,
+                status: payload.status || 'completed',
+                session_date: payload.session_date || payload.timer_start_date || null,
+                created_at: payload.created_at || new Date().toISOString()
+              };
+
+              let { error } = await sb.from(targetTable).upsert([insertData], { onConflict: 'id' });
+              if (error) {
+                console.warn(`Supabase ${targetTable} insert error, attempting fallback:`, error);
+                const fbRes = await sb.from('study_sessions').upsert([{
+                  id: insertData.id,
+                  subject: insertData.subject,
+                  duration_minutes: insertData.duration_minutes,
+                  session_date: insertData.session_date,
+                  created_at: insertData.created_at
+                }], { onConflict: 'id' });
+
+                if (fbRes.error) {
+                  throw fbRes.error;
+                }
+              }
+
+              success = true;
+
+              // Mark corresponding local session record as synced: true in LocalStorage and IndexedDB
+              const localIdx = allSessions.findIndex(s => s.id === targetId);
+              if (localIdx !== -1) {
+                allSessions[localIdx].synced = true;
+                saveCachedSessions(allSessions);
+              }
+              try {
+                const sName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+                const idbTx = db.transaction(sName, 'readwrite');
+                const idbStore = idbTx.objectStore(sName);
+                const getReq = idbStore.get(targetId);
+                getReq.onsuccess = () => {
+                  if (getReq.result) {
+                    idbStore.put({ ...getReq.result, synced: true });
+                  }
+                };
+              } catch (_) {}
+
+            } else if (action === 'UPDATE') {
+              const targetTable = table || 'study_timer_sessions';
+              const updateData = {};
+              if (payload.duration_seconds !== undefined) updateData.duration_seconds = Number(payload.duration_seconds);
+              if (payload.duration_minutes !== undefined) updateData.duration_minutes = Number(payload.duration_minutes);
+              if (payload.unit_number !== undefined) updateData.unit_number = Number(payload.unit_number);
+              if (payload.unit_name !== undefined) updateData.unit_name = payload.unit_name;
+              if (payload.status !== undefined) updateData.status = payload.status;
+              if (payload.timer_stop_date !== undefined) updateData.timer_stop_date = payload.timer_stop_date;
+              if (payload.timer_stop_time !== undefined) updateData.timer_stop_time = payload.timer_stop_time;
+              if (payload.end_time !== undefined) updateData.end_time = payload.end_time;
+
+              let { error } = await sb.from(targetTable).update(updateData).eq('id', targetId);
+              if (error) {
+                console.warn(`Supabase ${targetTable} update error, attempting fallback:`, error);
+                const fbRes = await sb.from('study_sessions').update({ duration_minutes: updateData.duration_minutes || 50 }).eq('id', targetId);
+                if (fbRes.error) {
+                  throw fbRes.error;
+                }
+              }
+
+              success = true;
+
+              const localIdx = allSessions.findIndex(s => s.id === targetId);
+              if (localIdx !== -1) {
+                allSessions[localIdx].synced = true;
+                saveCachedSessions(allSessions);
+              }
+              try {
+                const sName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+                const idbTx = db.transaction(sName, 'readwrite');
+                const idbStore = idbTx.objectStore(sName);
+                const getReq = idbStore.get(targetId);
+                getReq.onsuccess = () => {
+                  if (getReq.result) {
+                    idbStore.put({ ...getReq.result, synced: true });
+                  }
+                };
+              } catch (_) {}
+
+            } else if (action === 'DELETE') {
+              const targetTable = table || 'study_timer_sessions';
+              let { error } = await sb.from(targetTable).delete().eq('id', targetId);
+              if (error) {
+                console.warn(`Supabase ${targetTable} delete error, attempting fallback:`, error);
+                const fbRes = await sb.from('study_sessions').delete().eq('id', targetId);
+                if (fbRes.error) {
+                  throw fbRes.error;
+                }
+              }
+              success = true;
+            }
+
+            if (success) {
+              await new Promise((resolve) => {
+                const delTx = db.transaction('sync_queue', 'readwrite');
+                const delStore = delTx.objectStore('sync_queue');
+                const delReq = delStore.delete(queue_id);
+                delReq.onsuccess = () => resolve();
+                delReq.onerror = () => resolve();
+              });
+              await updateSyncUI();
+            }
+          } catch (taskErr) {
+            console.error(`Sync queue halted on task #${queue_id} (${action}):`, taskErr);
+            // On network/request failure: stops queue processing immediately to maintain strict chronological FIFO order without data corruption
+            break;
+          }
+        }
+      } catch (err) {
+        console.error('processSyncQueue execution error:', err);
+      } finally {
+        isSyncingQueue = false;
+        await updateSyncUI();
+      }
+    }
+
+    // Update UI badge for Sync state
+    async function updateSyncUI(overrideState) {
+      const badge = document.getElementById('analyticsSyncBadge');
+      if (!badge) return;
+
+      const pendingCount = await getPendingSyncCount();
+
+      if (!navigator.onLine) {
+        badge.className = 'sync-status-badge offline';
+        badge.innerHTML = '<span>🟡</span> <span>Offline' + (pendingCount > 0 ? ` (${pendingCount} pending)` : '') + '</span>';
+      } else if (overrideState === 'syncing' || isSyncingQueue) {
+        badge.className = 'sync-status-badge syncing';
+        badge.innerHTML = '<span>🔄</span> <span>Syncing...</span>';
+      } else if (pendingCount > 0) {
+        badge.className = 'sync-status-badge syncing';
+        badge.innerHTML = `<span>🔄</span> <span>Syncing (${pendingCount} pending)...</span>`;
+        processSyncQueue(); // auto-drain immediately
+      } else {
+        badge.className = 'sync-status-badge';
+        badge.innerHTML = '<span>🟢</span> <span>Online Synced</span>';
+      }
+    }
+
+    // Load Sessions strictly from timer records (LocalStorage + IndexedDB + Supabase)
+    async function loadAllSessions() {
+      let sessions = getCachedSessions().filter(isValidTimerSession);
+
+      // Read from IndexedDB store study_timer_sessions
+      try {
+        const db = await openOfflineDB();
+        if (db) {
+          const storeName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+          const tx = db.transaction(storeName, 'readwrite');
+          const store = tx.objectStore(storeName);
+          const req = store.getAll();
+          await new Promise((resolve) => {
+            req.onsuccess = () => {
+              const idbList = req.result || [];
+              const map = new Map();
+              sessions.forEach(s => map.set(s.id, s));
+              idbList.forEach(s => {
+                if (isValidTimerSession(s)) {
+                  const prev = map.get(s.id);
+                  if (!prev || (prev.synced && !s.synced)) {
+                    map.set(s.id, s);
+                  } else {
+                    map.set(s.id, { ...s, ...prev });
+                  }
+                } else {
+                  try { store.delete(s.id); } catch (_) {}
+                }
+              });
+              sessions = Array.from(map.values());
+              resolve();
+            };
+            req.onerror = () => resolve();
+          });
+        }
+      } catch (e) {}
+
+      // If online and Supabase is reachable, try fetching remote study_timer_sessions
+      const sb = getSupabase();
+      if (navigator.onLine && sb) {
+        try {
+          let queryRes = await sb
+            .from('study_timer_sessions')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (queryRes.error) {
+            // Fallback to study_sessions table if study_timer_sessions is not yet created in Supabase
+            queryRes = await sb
+              .from('study_sessions')
+              .select('*')
+              .order('created_at', { ascending: false });
+          }
+
+          if (!queryRes.error && Array.isArray(queryRes.data)) {
+            const map = new Map();
+            sessions.forEach(s => map.set(s.id, s));
+            queryRes.data.forEach(s => {
+              if (isValidTimerSession(s)) {
+                const local = map.get(s.id);
+                // Retain local changes if pending sync
+                if (!local || local.synced !== false) {
+                  map.set(s.id, { ...s, synced: true });
+                }
+              }
+            });
+            sessions = Array.from(map.values());
+          }
+        } catch (_) {}
+      }
+
+      // Sort by stop/start time descending
+      sessions.sort((a, b) => {
+        const tA = new Date(a.end_time || a.timer_stop_date || a.start_time || a.created_at || a.session_date).getTime() || 0;
+        const tB = new Date(b.end_time || b.timer_stop_date || b.start_time || b.created_at || b.session_date).getTime() || 0;
+        return tB - tA;
+      });
+
+      allSessions = sessions;
+      saveCachedSessions(allSessions);
+      return allSessions;
+    }
+
+    // 6. Query Supabase 'unit_paper' Table for Live Subject Coverage (ආවරණය)
+    async function loadSubjectCoverageFromUnitPaper() {
+      const sb = getSupabase();
+      if (navigator.onLine && sb) {
+        try {
+          let res = await sb.from('unit_paper').select('subject, sub_lesson_code');
+          if (res.error && (res.error.code === 'PGRST205' || (res.error.message && res.error.message.includes('not find')))) {
+            res = await sb.from('unit_papers').select('subject, sub_lesson_code');
+          }
+          if (res.data && Array.isArray(res.data)) {
+            const tempSets = {};
+
+            res.data.forEach(item => {
+              const subj = (item.subject || '').toUpperCase().trim();
+              const code = String(item.sub_lesson_code || '').trim();
+              if (!code) return;
+
+              let unitNum = null;
+              const unitMatch = code.match(/(?:Unit|ඒකකය)\s*(\d+)/i);
+              if (unitMatch) {
+                unitNum = parseInt(unitMatch[1], 10);
+              } else {
+                const numMatch = code.match(/^(\d+)(?:\.|$)/);
+                if (numMatch) unitNum = parseInt(numMatch[1], 10);
+              }
+
+              if (unitNum && !isNaN(unitNum) && unitNum > 0) {
+                if (!tempSets[subj]) tempSets[subj] = new Set();
+                tempSets[subj].add(unitNum);
+              }
+            });
+
+            subjectCoverageUnits = tempSets;
+
+            try {
+              const serialized = {};
+              Object.keys(tempSets).forEach(k => {
+                serialized[k] = Array.from(tempSets[k]);
+              });
+              localStorage.setItem('g9_subject_coverage_cache', JSON.stringify(serialized));
+            } catch (_) {}
+          }
+        } catch (err) {
+          console.warn('Failed to load subject coverage from unit_paper:', err);
+        }
+      } else {
+        try {
+          const cached = localStorage.getItem('g9_subject_coverage_cache');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            subjectCoverageUnits = {};
+            Object.keys(parsed).forEach(k => {
+              subjectCoverageUnits[k] = new Set(parsed[k]);
+            });
+          }
+        } catch (_) {}
+      }
+    }
+
+    // Refresh entire analytics view
+    async function refreshAnalyticsData() {
+      if (navigator.onLine) {
+        const sb = getSupabase();
+        if (sb) {
+          try {
+            const { data: cfgRow } = await sb
+              .from('full_papers')
+              .select('remarks')
+              .eq('time_taken', 'APP_CONFIG_SUBJECTS')
+              .limit(1);
+            if (cfgRow && cfgRow[0] && cfgRow[0].remarks) {
+              const parsed = JSON.parse(cfgRow[0].remarks);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                g9SubjectsCache = parsed;
+                try { localStorage.setItem('g9_subjects_config', JSON.stringify(parsed)); } catch(e) {}
+              }
+            }
+          } catch(e) {
+            console.warn('Failed to sync subjects config:', e);
+          }
+        }
+        try {
+          initRealtimeSync();
+          await processSyncQueue();
+        } catch (e) {
+          console.warn('processSyncQueue error:', e);
+        }
+      }
+      try { updateFilterButtons(); } catch (e) {}
+      try {
+        await loadAllSessions();
+      } catch (e) {
+        console.warn('loadAllSessions error:', e);
+      }
+      try {
+        await loadSubjectCoverageFromUnitPaper();
+      } catch (e) {
+        console.warn('loadSubjectCoverageFromUnitPaper error:', e);
+      }
+      try { renderKPIs(); } catch (e) { console.error('renderKPIs error:', e); }
+      try { renderComprehensiveHeatmap(); } catch (e) { console.error('renderComprehensiveHeatmap error:', e); }
+      try { renderPeakTimeSlots(); } catch (e) { console.error('renderPeakTimeSlots error:', e); }
+      try { renderWeeklyHabitMatrix(); } catch (e) { console.error('renderWeeklyHabitMatrix error:', e); }
+      try { renderSubjectProgressSection(); } catch (e) { console.error('renderSubjectProgressSection error:', e); }
+      try { renderVisualCharts(); } catch (e) { console.error('renderVisualCharts error:', e); }
+      try { renderSessionsTable(); } catch (e) { console.error('renderSessionsTable error:', e); }
+      try { await updateSyncUI(); } catch (e) {}
+    }
+
+    // 1. Render Top Executive KPIs (Both Rows: 10 Metric Cards)
+    function renderKPIs() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const dateMinsMap = {};
+      let totalMins = 0;
+      let totalSessions = allSessions.length;
+      let completedSessions = 0;
+
+      // Slot durations for Peak Time Slot KPI
+      const slotMins = {
+        'Early Morning': 0,
+        'Morning': 0,
+        'Afternoon': 0,
+        'Evening': 0,
+        'Late Night': 0
+      };
+
+      const subjMins = {};
+      const thisMonthActiveDates = new Set();
+      const now = new Date();
+      const curYear = now.getFullYear();
+      const curMonth = now.getMonth();
+
+      // Monday of current calendar week
+      const dayOfWeek = (now.getDay() + 6) % 7; // Mon=0, Sun=6
+      const mondayDate = new Date(now);
+      mondayDate.setDate(now.getDate() - dayOfWeek);
+      mondayDate.setHours(0, 0, 0, 0);
+
+      let thisWeekMins = 0;
+
+      allSessions.forEach(s => {
+        const ds = s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+        const mins = Number(s.duration_minutes) || 0;
+        if (ds) {
+          dateMinsMap[ds] = (dateMinsMap[ds] || 0) + mins;
+          const sDate = new Date(ds + 'T12:00:00');
+          if (sDate.getFullYear() === curYear && sDate.getMonth() === curMonth) {
+            thisMonthActiveDates.add(ds);
+          }
+          if (sDate >= mondayDate) {
+            thisWeekMins += mins;
+          }
+        }
+        totalMins += mins;
+
+        if (s.status === 'completed' || s.status === undefined) {
+          completedSessions++;
+        }
+
+        const sub = (s.subject || 'MATH').toUpperCase().trim();
+        if (sub) {
+          subjMins[sub] = (subjMins[sub] || 0) + mins;
+        }
+
+        // Slot analysis
+        const dObj = new Date(s.start_time || s.created_at || (ds ? ds + 'T12:00:00' : Date.now()));
+        const hr = dObj.getHours();
+        if (hr >= 4 && hr < 8) slotMins['Early Morning'] += mins;
+        else if (hr >= 8 && hr < 12) slotMins['Morning'] += mins;
+        else if (hr >= 12 && hr < 17) slotMins['Afternoon'] += mins;
+        else if (hr >= 17 && hr < 21) slotMins['Evening'] += mins;
+        else slotMins['Late Night'] += mins;
+      });
+
+      // --- ROW 1 ---
+      // Today's focus
+      const todayMins = dateMinsMap[todayStr] || 0;
+      const todayEl = document.getElementById('kpiTodayMins');
+      if (todayEl) todayEl.innerText = todayMins;
+
+      // Total Hours & Minutes
+      const totalHours = (totalMins / 60).toFixed(1);
+      const totalHoursEl = document.getElementById('kpiTotalHours');
+      if (totalHoursEl) totalHoursEl.innerText = totalHours;
+      const totalMinutesEl = document.getElementById('kpiTotalMinutes');
+      if (totalMinutesEl) totalMinutesEl.innerText = totalMins;
+
+      // Current Streak Calculation
+      let streak = 0;
+      let checkDate = new Date();
+      if (!dateMinsMap[todayStr]) {
+        checkDate.setDate(checkDate.getDate() - 1);
+      }
+      while (true) {
+        const ds = getLocalDateString(checkDate);
+        if (dateMinsMap[ds] && dateMinsMap[ds] > 0) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      const curStreakEl = document.getElementById('kpiCurrentStreak');
+      if (curStreakEl) curStreakEl.innerText = streak;
+
+      // Best Streak Calculation
+      const sortedDates = Object.keys(dateMinsMap).filter(d => dateMinsMap[d] > 0).sort();
+      let bestStreak = 0;
+      let curCount = 0;
+      let lastD = null;
+      sortedDates.forEach(dStr => {
+        const dObj = new Date(dStr);
+        if (lastD) {
+          const diffDays = Math.round((dObj - lastD) / (1000 * 60 * 60 * 24));
+          if (diffDays === 1) {
+            curCount++;
+          } else if (diffDays > 1) {
+            curCount = 1;
+          }
+        } else {
+          curCount = 1;
+        }
+        if (curCount > bestStreak) bestStreak = curCount;
+        lastD = dObj;
+      });
+      const bestStreakEl = document.getElementById('kpiBestStreak');
+      if (bestStreakEl) bestStreakEl.innerText = Math.max(streak, bestStreak);
+
+      // Last 7 Days Total & Daily Average
+      let weekMins = 0;
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const ds = getLocalDateString(d);
+        weekMins += (dateMinsMap[ds] || 0);
+      }
+      const weeklyAvg = Math.round(weekMins / 7);
+      const weeklyAvgEl = document.getElementById('kpiWeeklyAvg');
+      if (weeklyAvgEl) weeklyAvgEl.innerText = weeklyAvg;
+      const thisWeekTotalEl = document.getElementById('kpiThisWeekTotal');
+      if (thisWeekTotalEl) thisWeekTotalEl.innerText = weekMins;
+
+      // Total Sessions & Average
+      const totalSessEl = document.getElementById('kpiTotalSessions');
+      if (totalSessEl) totalSessEl.innerText = totalSessions;
+      const avgSess = totalSessions > 0 ? Math.round(totalMins / totalSessions) : 0;
+      const avgSessEl = document.getElementById('kpiAvgSessionMins');
+      if (avgSessEl) avgSessEl.innerText = avgSess;
+
+      // --- ROW 2 (Item 3) ---
+      // 1. Peak Study Time
+      let peakSlotName = 'Evening (5-9 PM)';
+      let peakSlotMins = 0;
+      const slotLabels = {
+        'Early Morning': 'Early (4-8 AM)',
+        'Morning': 'Morning (8-12 PM)',
+        'Afternoon': 'Afternoon (12-5 PM)',
+        'Evening': 'Evening (5-9 PM)',
+        'Late Night': 'Night (9-4 AM)'
+      };
+      for (const [sName, sM] of Object.entries(slotMins)) {
+        if (sM > peakSlotMins) {
+          peakSlotMins = sM;
+          peakSlotName = slotLabels[sName] || sName;
+        }
+      }
+      const peakSharePct = totalMins > 0 ? Math.round((peakSlotMins / totalMins) * 100) : 0;
+      const peakSlotEl = document.getElementById('kpiPeakTimeSlot');
+      const peakShareEl = document.getElementById('kpiPeakTimeShare');
+      if (peakSlotEl) peakSlotEl.innerText = totalMins > 0 ? peakSlotName : 'None Yet';
+      if (peakShareEl) peakShareEl.innerText = `${peakSharePct}%`;
+
+      // 2. This Week's Focus (Mon-Sun)
+      const thisWeekHours = (thisWeekMins / 60).toFixed(1);
+      const weekTargetPct = Math.min(100, Math.round((thisWeekHours / 20) * 100));
+      const weekHoursEl = document.getElementById('kpiThisWeekHours');
+      const weekTargetEl = document.getElementById('kpiThisWeekTargetPct');
+      if (weekHoursEl) weekHoursEl.innerText = thisWeekHours;
+      if (weekTargetEl) weekTargetEl.innerText = `${weekTargetPct}% (Goal: 20h)`;
+
+      // 3. Active Study Days (This Month)
+      const daysElapsedInMonth = now.getDate();
+      const activeDaysCount = thisMonthActiveDates.size;
+      const consistencyPct = Math.round((activeDaysCount / Math.max(1, daysElapsedInMonth)) * 100);
+      const activeDaysEl = document.getElementById('kpiActiveDaysMonth');
+      const consistencyEl = document.getElementById('kpiMonthlyConsistency');
+      if (activeDaysEl) activeDaysEl.innerText = activeDaysCount;
+      if (consistencyEl) consistencyEl.innerText = `${consistencyPct}% Active`;
+
+      // 4. Top Focus Subject
+      let topSubj = 'MATH';
+      let topMins = 0;
+      for (const [sub, m] of Object.entries(subjMins)) {
+        if (m > topMins) {
+          topMins = m;
+          topSubj = sub;
+        }
+      }
+      const topMeta = getSubjectMeta(topSubj);
+      const topSharePct = totalMins > 0 ? Math.round((topMins / totalMins) * 100) : 0;
+      const topHours = (topMins / 60).toFixed(1);
+      const topSubjEl = document.getElementById('kpiTopSubject');
+      const topShareEl = document.getElementById('kpiTopSubjectShare');
+      const topHoursEl = document.getElementById('kpiTopSubjectHours');
+      if (topSubjEl) topSubjEl.innerText = totalMins > 0 ? `${topMeta.icon || '📘'} ${topMeta.code}` : 'None';
+      if (topShareEl) topShareEl.innerText = `${topSharePct}%`;
+      if (topHoursEl) topHoursEl.innerText = `${topHours}h`;
+
+      // 5. Completion Rate (Weekly Goal: 25h / 1500 mins, Mon-Sun)
+      const weekTargetMins = 25 * 60; // 1500 minutes
+      const completionRatePct = Math.round((thisWeekMins / weekTargetMins) * 100);
+      const compRateEl = document.getElementById('kpiCompletionRate');
+      const compSubEl = document.getElementById('kpiCompletionRateSub');
+      const compCountEl = document.getElementById('kpiCompletedSessionsCount');
+      if (compRateEl) compRateEl.innerText = `${completionRatePct}%`;
+      if (compSubEl) compSubEl.innerText = `Goal: 25h/week (Current: ${thisWeekHours}h)`;
+      if (compCountEl) compCountEl.innerText = completedSessions;
+    }
+
+    // 2. Render Comprehensive Heatmap & Activity Details
+    function setTimeframeWeeks(weeks, btn) {
+      currentHeatmapWeeks = weeks;
+      document.querySelectorAll('.timeframe-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderComprehensiveHeatmap();
+    }
+
+    function renderComprehensiveHeatmap() {
+      const grid = document.getElementById('fullHeatmapGrid');
+      const monthsRow = document.getElementById('heatmapMonthsRow');
+      if (!grid) return;
+
+      // Thoroughly clear grid and month labels before re-rendering
+      grid.innerHTML = '';
+      if (monthsRow) monthsRow.innerHTML = '';
+
+      const dateMap = {};
+      const subjectDetailMap = {};
+
+      allSessions.forEach(s => {
+        const ds = s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+        const mins = Number(s.duration_minutes) || 0;
+        if (!ds) return;
+        dateMap[ds] = (dateMap[ds] || 0) + mins;
+        if (!subjectDetailMap[ds]) {
+          subjectDetailMap[ds] = { sessions: [] };
+          getActiveSubjects().forEach(sub => {
+            subjectDetailMap[ds][sub.code.toUpperCase()] = 0;
+          });
+        }
+        const subj = (s.subject || 'MATH').toUpperCase().trim();
+        subjectDetailMap[ds][subj] = (subjectDetailMap[ds][subj] || 0) + mins;
+        subjectDetailMap[ds].sessions.push(s);
+      });
+
+      // Calculate weeks count dynamically (strictly support '3M', '6M', '1Y', 'ALL')
+      let weeksCount = 26; // Default to 6 Months
+      if (currentHeatmapWeeks === '3M') {
+        weeksCount = 13;
+      } else if (currentHeatmapWeeks === '6M') {
+        weeksCount = 26;
+      } else if (currentHeatmapWeeks === '1Y') {
+        weeksCount = 52;
+      } else if (currentHeatmapWeeks === 'ALL') {
+        let earliestTime = Date.now();
+        allSessions.forEach(s => {
+          const ds = s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+          if (ds) {
+            const t = new Date(ds).getTime();
+            if (!isNaN(t) && t < earliestTime) earliestTime = t;
+          }
+        });
+        const spanWeeks = Math.ceil((Date.now() - earliestTime) / (7 * 86400000));
+        weeksCount = Math.max(13, Math.min(104, spanWeeks + 2)); // Minimum 13 weeks, padded
+      } else {
+        weeksCount = Number(currentHeatmapWeeks) || 26;
+      }
+
+      const totalDays = weeksCount * 7;
+      const endDate = new Date();
+      // Advance to current Saturday
+      const dayOfWeek = endDate.getDay(); // 0 is Sunday
+      const daysToSat = (6 - dayOfWeek + 7) % 7;
+      const alignedEnd = new Date(endDate);
+      alignedEnd.setDate(alignedEnd.getDate() + daysToSat);
+
+      const cells = [];
+      let activeDaysCount = 0;
+      let lastMonth = -1;
+
+      // Month labels distribution
+      const monthCols = [];
+      for (let w = 0; w < weeksCount; w++) {
+        const d = new Date(alignedEnd);
+        d.setDate(d.getDate() - (weeksCount - 1 - w) * 7);
+        const m = d.getMonth();
+        if (m !== lastMonth) {
+          const mNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          monthCols.push({ col: w, name: mNames[m] });
+          lastMonth = m;
+        }
+      }
+
+      // Render cells
+      const todayStr = new Date().toISOString().split('T')[0];
+      for (let i = totalDays - 1; i >= 0; i--) {
+        const d = new Date(alignedEnd);
+        d.setDate(d.getDate() - i);
+        const ds = d.toISOString().split('T')[0];
+        const isFuture = d > new Date();
+        const mins = isFuture ? 0 : (dateMap[ds] || 0);
+
+        if (mins > 0) activeDaysCount++;
+
+        let level = 0;
+        if (mins > 80) level = 4;
+        else if (mins > 50) level = 3;
+        else if (mins > 25) level = 2;
+        else if (mins > 0) level = 1;
+
+        cells.push(`
+          <span class="heat-cell level-${level}"
+                data-date="${ds}"
+                data-mins="${mins}"
+                onclick="handleHeatCellClick('${ds}')"
+                title="${ds}: ${mins} mins focused">
+          </span>
+        `);
+      }
+
+      grid.innerHTML = cells.join('');
+
+      // Build month labels row
+      if (monthsRow) {
+        if (weeksCount <= 2) {
+          monthsRow.innerHTML = `<span style="position: absolute; left: 24px;">${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>`;
+        } else {
+          const colWidth = 16; // 12px width + 4px gap
+          monthsRow.innerHTML = monthCols.map(m => `
+            <span style="position: absolute; left: ${m.col * colWidth + 24}px;">${m.name}</span>
+          `).join('');
+        }
+        monthsRow.style.position = 'relative';
+      }
+
+      // Update legend counts
+      const legAct = document.getElementById('legendActiveDays');
+      if (legAct) legAct.innerText = activeDaysCount;
+      const legTot = document.getElementById('legendTotalDays');
+      if (legTot) legTot.innerText = totalDays;
+
+      // Update detail banner based on active period tab
+      renderDetailPeriodData(currentDetailPeriod);
+    }
+
+    // Detail Period Tabs Handler (Item 6: Today, 7D, 30D, 1Y, All Time)
+    function setDetailPeriod(period, btn) {
+      currentDetailPeriod = period;
+      document.querySelectorAll('.period-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      // Deselect heat cells when choosing period aggregations
+      document.querySelectorAll('.heat-cell').forEach(c => c.classList.remove('selected'));
+      renderDetailPeriodData(period);
+    }
+
+    function renderDetailPeriodData(period) {
+      const now = new Date();
+      const todayStr = getLocalDateString(now);
+      let filtered = [];
+      let title = '';
+      let icon = '📌';
+
+      if (period === 'today') {
+        filtered = filterSessionsByTimeframe(allSessions, 'today');
+        title = `අද දින තොරතුරු (Today — ${todayStr})`;
+        icon = '📌';
+        // Select today cell on the heatmap if present
+        const todayCell = document.querySelector(`.heat-cell[data-date="${todayStr}"]`);
+        if (todayCell) todayCell.classList.add('selected');
+      } else if (period === '7d') {
+        filtered = filterSessionsByTimeframe(allSessions, '7d');
+        title = 'පසුගිය දින 7 තොරතුරු (Last 7 Days)';
+        icon = '🗓️';
+      } else if (period === '30d') {
+        filtered = filterSessionsByTimeframe(allSessions, '30d');
+        title = 'පසුගිය දින 30 තොරතුරු (Last 30 Days)';
+        icon = '📅';
+      } else if (period === '1y') {
+        filtered = filterSessionsByTimeframe(allSessions, '1y');
+        title = 'පසුගිය වසර 1 තොරතුරු (Last 1 Year)';
+        icon = '📆';
+      } else {
+        filtered = filterSessionsByTimeframe(allSessions, 'all');
+        title = 'සමස්ත කාලසීමාවේ තොරතුරු (All Time Summary)';
+        icon = '🌐';
+      }
+
+      const totalMins = filtered.reduce((acc, s) => acc + (Number(s.duration_minutes) || 0), 0);
+      const hours = (totalMins / 60).toFixed(1);
+      const sessCount = filtered.length;
+
+      const iconEl = document.getElementById('detailPeriodIcon');
+      if (iconEl) iconEl.innerText = icon;
+
+      const dateTxtEl = document.getElementById('selectedDateTxt');
+      if (dateTxtEl) dateTxtEl.innerText = title;
+
+      const sessCountEl = document.getElementById('selectedDateSessionsCount');
+      if (sessCountEl) sessCountEl.innerText = `${sessCount} ${sessCount === 1 ? 'Session' : 'Sessions'} Logged`;
+
+      const minsEl = document.getElementById('selectedDateMins');
+      if (minsEl) {
+        minsEl.innerText = totalMins >= 60 ? `${totalMins} Mins (${hours}h)` : `${totalMins} Mins Focused`;
+      }
+
+      const subjMap = {};
+      filtered.forEach(s => {
+        const sub = (s.subject || 'MATH').toUpperCase().trim();
+        if (sub) {
+          subjMap[sub] = (subjMap[sub] || 0) + (Number(s.duration_minutes) || 0);
+        }
+      });
+
+      const pills = [];
+      Object.keys(subjMap).forEach(sub => {
+        const m = subjMap[sub] || 0;
+        if (m > 0) {
+          const h = (m / 60).toFixed(1);
+          const meta = getSubjectMeta(sub);
+          pills.push(`<span class="subj-pill" style="background:${meta.color}25; color:${meta.color}; border:1px solid ${meta.color}50;">${meta.icon || '📘'} ${meta.code}: ${m}m (${h}h)</span>`);
+        }
+      });
+
+      const subEl = document.getElementById('selectedDateSubjects');
+      if (subEl) {
+        subEl.innerHTML = (totalMins > 0 && pills.length > 0) ? pills.join('') : '<span style="font-size:12px; color:var(--text-muted);">මෙම කාල සීමාව තුළ අධ්‍යයන සැසි සටහන් කර නොමැත (No sessions recorded for this timeframe)</span>';
+      }
+    }
+
+    function handleHeatCellClick(dateStr) {
+      document.querySelectorAll('.period-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.heat-cell').forEach(c => c.classList.remove('selected'));
+      const activeCell = document.querySelector(`.heat-cell[data-date="${dateStr}"]`);
+      if (activeCell) activeCell.classList.add('selected');
+
+      const dateObj = new Date(dateStr);
+      const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+      const formatted = dateObj.toLocaleDateString('si-LK', options) || dateStr;
+
+      const dateSessions = allSessions.filter(s => (s.session_date === dateStr || (s.start_time && s.start_time.startsWith(dateStr))));
+      const totalMins = dateSessions.reduce((acc, s) => acc + (Number(s.duration_minutes) || 0), 0);
+      const hours = (totalMins / 60).toFixed(1);
+
+      const iconEl = document.getElementById('detailPeriodIcon');
+      if (iconEl) iconEl.innerText = '📍';
+
+      const dateTxtEl = document.getElementById('selectedDateTxt');
+      if (dateTxtEl) dateTxtEl.innerText = `${dateStr} (${formatted})`;
+
+      const sessCountEl = document.getElementById('selectedDateSessionsCount');
+      if (sessCountEl) sessCountEl.innerText = `${dateSessions.length} ${dateSessions.length === 1 ? 'Session' : 'Sessions'} Logged`;
+
+      const minsEl = document.getElementById('selectedDateMins');
+      if (minsEl) {
+        minsEl.innerText = totalMins >= 60 ? `${totalMins} Mins (${hours}h)` : `${totalMins} Mins Focused`;
+      }
+
+      const subjMap = {};
+      dateSessions.forEach(s => {
+        const subj = (s.subject || 'ICT').toUpperCase();
+        subjMap[subj] = (subjMap[subj] || 0) + (Number(s.duration_minutes) || 0);
+      });
+
+      const tagsHtml = Object.keys(subjMap).filter(k => subjMap[k] > 0).map(subj => {
+        const meta = getSubjectMeta(subj);
+        const m = subjMap[subj];
+        const h = (m / 60).toFixed(1);
+        return `<span class="subj-pill" style="background:${meta.color}25; color:${meta.color}; border:1px solid ${meta.color}50;">${meta.icon || '📘'} ${meta.code}: ${m}m (${h}h)</span>`;
+      }).join('');
+
+      const subEl = document.getElementById('selectedDateSubjects');
+      if (subEl) {
+        subEl.innerHTML = (totalMins > 0 && tagsHtml) ? tagsHtml : '<span style="font-size:12px; color:var(--text-muted);">මෙම දිනට අධ්‍යයන සැසි සටහන් කර නැත (No sessions recorded for this date)</span>';
+      }
+    }
+
+    // Helper: Unified Filter sessions by timeframe (1d/today, 7d, 14d, 1m/30d, 3m/90d, 1y/365d, all)
+    function filterSessionsByTimeframe(sessions, tf) {
+      if (!Array.isArray(sessions)) return [];
+      const now = new Date();
+      const todayStr = getLocalDateString(now);
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const endOfToday = startOfToday + 86400000 - 1;
+
+      let filtered = [];
+      const mode = (tf || 'all').toLowerCase();
+
+      if (mode === 'all') {
+        filtered = [...sessions];
+      } else if (mode === '1d' || mode === 'today') {
+        filtered = sessions.filter(s => {
+          const d = s.timer_start_date || s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+          if (d === todayStr) return true;
+          const ts = getSessionTimestamp(s);
+          return ts >= startOfToday && ts <= endOfToday;
+        });
+      } else {
+        let dayCount = 7;
+        if (mode === '7d' || mode === '1w' || mode === '1week') dayCount = 7;
+        else if (mode === '14d' || mode === '2w') dayCount = 14;
+        else if (mode === '1m' || mode === '30d' || mode === '1month') dayCount = 30;
+        else if (mode === '3m' || mode === '90d' || mode === '3months') dayCount = 90;
+        else if (mode === '6m' || mode === '180d' || mode === '6months') dayCount = 180;
+        else if (mode === '1y' || mode === '365d' || mode === '1year') dayCount = 365;
+
+        // Inclusive calendar day boundary: (dayCount - 1) days ago from local midnight
+        const cutoffMidnight = startOfToday - (dayCount - 1) * 86400000;
+        filtered = sessions.filter(s => {
+          const ts = getSessionTimestamp(s);
+          return ts >= cutoffMidnight && ts <= endOfToday;
+        });
+      }
+
+      // Enforce strict descending sorting (newest session first) across all returned subsets
+      filtered.sort((a, b) => getSessionTimestamp(b) - getSessionTimestamp(a));
+      return filtered;
+    }
+
+    // Chart Timeframe Setters
+    function setDoughnutTimeframe(tf, btn) {
+      currentDoughnutTimeframe = tf;
+      const container = document.getElementById('doughnutFilterTabs');
+      if (container) {
+        container.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
+      }
+      if (btn) btn.classList.add('active');
+      renderDoughnutChart();
+    }
+
+    function setTrendTimeframe(tf, btn) {
+      currentTrendTimeframe = tf;
+      const container = document.getElementById('trendFilterTabs');
+      if (container) {
+        container.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
+      }
+      if (btn) btn.classList.add('active');
+      renderTrendBarChart();
+    }
+
+    // 3. Render Visual Charts: Subject Distribution (Doughnut)
+    function renderDoughnutChart() {
+      if (typeof Chart === 'undefined') return;
+      const doughnutEl = document.getElementById('subjectDoughnutChart');
+      if (!doughnutEl) return;
+
+      const filtered = filterSessionsByTimeframe(allSessions, currentDoughnutTimeframe);
+      const activeSubjs = getActiveSubjects();
+      const subjMins = {};
+      activeSubjs.forEach(s => { subjMins[s.code] = 0; });
+      filtered.forEach(s => {
+        const subj = (s.subject || '').toUpperCase().trim();
+        if (subj) {
+          subjMins[subj] = (subjMins[subj] || 0) + (Number(s.duration_minutes) || 0);
+        }
+      });
+
+      const recordedSubjs = Object.keys(subjMins).filter(k => subjMins[k] > 0);
+      const total = Object.values(subjMins).reduce((a, b) => a + b, 0);
+
+      let chartLabels, chartData, chartColors;
+      if (total > 0 && recordedSubjs.length > 0) {
+        chartLabels = recordedSubjs.map(code => {
+          const m = getSubjectMeta(code);
+          return `${m.icon || '📘'} ${m.code}`;
+        });
+        chartData = recordedSubjs.map(code => subjMins[code]);
+        chartColors = recordedSubjs.map(code => getSubjectMeta(code).color || '#0984e3');
+      } else {
+        chartLabels = ['දත්ත නොමැත (No Data)'];
+        chartData = [1];
+        chartColors = ['#2d3748'];
+      }
+
+      try {
+        if (subjectChartInstance) {
+          subjectChartInstance.data.labels = chartLabels;
+          subjectChartInstance.data.datasets[0].data = chartData;
+          subjectChartInstance.data.datasets[0].backgroundColor = chartColors;
+          subjectChartInstance.update();
+        } else {
+          const doughnutCtx = doughnutEl.getContext('2d');
+          subjectChartInstance = new Chart(doughnutCtx, {
+            type: 'doughnut',
+            data: {
+              labels: chartLabels,
+              datasets: [{
+                data: chartData,
+                backgroundColor: chartColors,
+                borderColor: '#090d14',
+                borderWidth: 3,
+                hoverOffset: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    color: '#f0f6fc',
+                    font: { family: 'Poppins', size: (window.innerWidth < 600) ? 9 : 11, weight: '700' },
+                    boxWidth: (window.innerWidth < 600) ? 10 : 12,
+                    padding: (window.innerWidth < 600) ? 8 : 14
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(ctx) {
+                      if (total === 0) return ' දත්ත නොමැත (No data)';
+                      const val = ctx.raw || 0;
+                      const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                      return ` ${ctx.label}: ${val} mins (${pct}%)`;
+                    }
+                  }
+                }
+              },
+              cutout: '68%'
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error rendering doughnut chart:', err);
+      }
+    }
+
+    // 3. Render Visual Charts: Focus Trend (Bar Chart)
+    function renderTrendBarChart() {
+      if (typeof Chart === 'undefined') return;
+      const barEl = document.getElementById('dailyTrendBarChart');
+      if (!barEl) return;
+
+      const trendTitleEl = document.getElementById('trendChartTitle');
+      if (trendTitleEl) {
+        const tfLabels = {
+          '7d': '7-Day Focus Trend',
+          '14d': '14-Day Focus Trend',
+          '1m': '1-Month Focus Trend',
+          '3m': '3-Month Focus Trend',
+          '1y': '1-Year Focus Trend',
+          'all': 'All-Time Focus Trend'
+        };
+        trendTitleEl.innerText = `ප්‍රගති ප්‍රවණතාව (${tfLabels[currentTrendTimeframe] || 'Focus Trend'})`;
+      }
+
+      const tf = currentTrendTimeframe;
+      let barLabels = [];
+      const activeSubjs = getActiveSubjects();
+      const subjDataMap = {};
+      activeSubjs.forEach(s => { subjDataMap[s.code] = []; });
+
+      const filteredSessions = filterSessionsByTimeframe(allSessions, tf);
+
+      function recordBucketMinutes(sessionsInBucket) {
+        const bucketMins = {};
+        activeSubjs.forEach(s => { bucketMins[s.code] = 0; });
+        sessionsInBucket.forEach(s => {
+          const sub = (s.subject || 'MATH').toUpperCase().trim();
+          const mins = Number(s.duration_minutes) || 0;
+          if (sub) {
+            bucketMins[sub] = (bucketMins[sub] || 0) + mins;
+            if (!subjDataMap[sub]) {
+              subjDataMap[sub] = new Array(barLabels.length - 1).fill(0);
+            }
+          }
+        });
+        Object.keys(subjDataMap).forEach(sub => {
+          subjDataMap[sub].push(bucketMins[sub] || 0);
+        });
+      }
+
+      if (tf === '7d' || tf === '14d' || tf === '1m') {
+        const days = tf === '7d' ? 7 : (tf === '14d' ? 14 : 30);
+        for (let i = days - 1; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const ds = getLocalDateString(d);
+          const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+          barLabels.push(days <= 14 ? `${dayName} ${d.getDate()}` : `${d.getMonth()+1}/${d.getDate()}`);
+
+          const daySessions = filteredSessions.filter(s => {
+            const sDate = s.timer_start_date || s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+            return sDate === ds;
+          });
+          recordBucketMinutes(daySessions);
+        }
+      } else if (tf === '3m') {
+        // 12 weeks
+        for (let w = 11; w >= 0; w--) {
+          const endD = new Date();
+          endD.setDate(endD.getDate() - w * 7);
+          const startD = new Date(endD);
+          startD.setDate(startD.getDate() - 6);
+
+          const label = `${startD.getDate()} ${startD.toLocaleDateString('en-US', { month: 'short' })}`;
+          barLabels.push(label);
+
+          const weekSessions = filteredSessions.filter(s => {
+            const ds = s.timer_start_date || s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+            if (!ds) return false;
+            const sd = new Date(ds + 'T12:00:00');
+            return sd >= startD && sd <= endD;
+          });
+          recordBucketMinutes(weekSessions);
+        }
+      } else if (tf === '1y') {
+        // 12 months
+        const now = new Date();
+        for (let m = 11; m >= 0; m--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
+          const y = d.getFullYear();
+          const mon = d.getMonth();
+          const label = d.toLocaleDateString('en-US', { month: 'short' });
+          barLabels.push(label);
+
+          const monthSessions = filteredSessions.filter(s => {
+            const ds = s.timer_start_date || s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+            if (!ds) return false;
+            const sd = new Date(ds + 'T12:00:00');
+            return sd.getFullYear() === y && sd.getMonth() === mon;
+          });
+          recordBucketMinutes(monthSessions);
+        }
+      } else {
+        // 'all' - monthly breakdown
+        const now = new Date();
+        for (let m = 5; m >= 0; m--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
+          const y = d.getFullYear();
+          const mon = d.getMonth();
+          const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          barLabels.push(label);
+
+          const allMonthSessions = filteredSessions.filter(s => {
+            const ds = s.timer_start_date || s.session_date || (s.start_time ? s.start_time.split('T')[0] : null);
+            if (!ds) return false;
+            const sd = new Date(ds + 'T12:00:00');
+            return sd.getFullYear() === y && sd.getMonth() === mon;
+          });
+          recordBucketMinutes(allMonthSessions);
+        }
+      }
+
+      const datasets = Object.keys(subjDataMap)
+        .filter(code => subjDataMap[code].some(v => v > 0) || activeSubjs.some(s => s.code === code))
+        .map(code => {
+          const meta = getSubjectMeta(code);
+          return {
+            label: `${meta.icon || '📘'} ${meta.code}`,
+            data: subjDataMap[code],
+            backgroundColor: meta.color || '#0984e3',
+            borderRadius: 4,
+            stack: 'combined'
+          };
+        });
+
+      try {
+        const barCtx = barEl.getContext('2d');
+        if (trendChartInstance) trendChartInstance.destroy();
+
+        trendChartInstance = new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: barLabels,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#f0f6fc',
+                  font: { family: 'Poppins', size: (window.innerWidth < 600) ? 9 : 10, weight: '700' },
+                  boxWidth: (window.innerWidth < 600) ? 10 : 12,
+                  padding: (window.innerWidth < 600) ? 6 : 10
+                }
+              }
+            },
+            scales: {
+              x: {
+                stacked: true,
+                grid: { display: false },
+                ticks: { color: '#8b949e', font: { size: (window.innerWidth < 600) ? 8.5 : 9.5 } }
+              },
+              y: {
+                stacked: true,
+                grid: { color: '#161d28' },
+                ticks: { color: '#8b949e', font: { size: (window.innerWidth < 600) ? 8.5 : 9.5 } }
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Error creating trend bar chart:', err);
+      }
+    }
+
+    function renderVisualCharts() {
+      renderDoughnutChart();
+      renderTrendBarChart();
+    }
+
+    // Debounced window resize handler triggering chart.resize()
+    let chartResizeDebounce = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(chartResizeDebounce);
+      chartResizeDebounce = setTimeout(() => {
+        if (subjectChartInstance && typeof subjectChartInstance.resize === 'function') {
+          subjectChartInstance.resize();
+        }
+        if (trendChartInstance && typeof trendChartInstance.resize === 'function') {
+          trendChartInstance.resize();
+        }
+      }, 150);
+    });
+
+    // 4. 24 × 7 Day-of-Week & Active Times Habit Matrix
+    function setHabitMatrixTimeframe(tf, btn) {
+      currentHabitMatrixTimeframe = tf;
+      const container = document.getElementById('habitMatrixTimeframeTabs');
+      if (container) {
+        container.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
+      }
+      if (btn) btn.classList.add('active');
+      renderWeeklyHabitMatrix();
+    }
+
+    function showHabitCellDetail(dayName, daySinhala, startHour, endHour, mins, count, cellEl) {
+      document.querySelectorAll('.habit-cell-24').forEach(c => c.classList.remove('active-tap'));
+      if (cellEl) cellEl.classList.add('active-tap');
+      const infoEl = document.getElementById('habitActiveInfo');
+      if (infoEl) {
+        if (mins > 0) {
+          infoEl.innerHTML = `📅 <strong>${dayName} (${daySinhala})</strong> ${startHour} – ${endHour}: <span style="color:#a29bfe; font-weight:700;">${mins} mins</span> (${count} ${count === 1 ? 'session' : 'sessions'})`;
+        } else {
+          infoEl.innerHTML = `📅 <strong>${dayName} (${daySinhala})</strong> ${startHour} – ${endHour}: <span style="color:var(--text-muted);">0 mins (No sessions)</span>`;
+        }
+      }
+    }
+
+    function renderWeeklyHabitMatrix() {
+      const tbody = document.getElementById('habitMatrixBody');
+      if (!tbody) return;
+
+      const DAYS_ORDER = [
+        { key: 1, name: 'Monday', sinhala: 'සඳුදා' },
+        { key: 2, name: 'Tuesday', sinhala: 'අඟහරුවාදා' },
+        { key: 3, name: 'Wednesday', sinhala: 'බදාදා' },
+        { key: 4, name: 'Thursday', sinhala: 'බ්‍රහස්පතින්දා' },
+        { key: 5, name: 'Friday', sinhala: 'සිකුරාදා' },
+        { key: 6, name: 'Saturday', sinhala: 'සෙනසුරාදා' },
+        { key: 0, name: 'Sunday', sinhala: 'ඉරිදා' }
+      ];
+
+      const matrix = {};
+      DAYS_ORDER.forEach(d => {
+        matrix[d.key] = {};
+        for (let h = 0; h < 24; h++) {
+          matrix[d.key][h] = { mins: 0, count: 0 };
+        }
+      });
+
+      let maxCellMins = 0;
+      let totalFilteredMins = 0;
+      let totalFilteredSessions = 0;
+
+      // Filter sessions based on selected timeframe (1w, 1m, 3m, 6m, 1y, all)
+      const filteredSessions = filterSessionsByTimeframe(allSessions, currentHabitMatrixTimeframe);
+
+      filteredSessions.forEach(s => {
+        const mins = Number(s.duration_minutes) || 0;
+        if (mins <= 0) return;
+
+        let dObj = null;
+        if (s.start_time) dObj = new Date(s.start_time);
+        else if (s.created_at) dObj = new Date(s.created_at);
+        else if (s.session_date) {
+          const timeStr = s.timer_start_time || '12:00';
+          dObj = new Date(`${s.session_date}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
+        }
+        if (!dObj || isNaN(dObj.getTime())) dObj = new Date();
+
+        const dayKey = dObj.getDay();
+        const hr = dObj.getHours();
+
+        if (matrix[dayKey] && matrix[dayKey][hr]) {
+          matrix[dayKey][hr].mins += mins;
+          matrix[dayKey][hr].count++;
+          totalFilteredMins += mins;
+          totalFilteredSessions++;
+          if (matrix[dayKey][hr].mins > maxCellMins) {
+            maxCellMins = matrix[dayKey][hr].mins;
+          }
+        }
+      });
+
+      const summaryEl = document.getElementById('habitMatrixTfSummary');
+      if (summaryEl) {
+        const hrs = (totalFilteredMins / 60).toFixed(1);
+        summaryEl.textContent = `• ${totalFilteredMins} mins (${hrs} hrs / ${totalFilteredSessions} sessions)`;
+      }
+
+      const infoEl = document.getElementById('habitActiveInfo');
+      if (infoEl) {
+        infoEl.innerHTML = '💡 Hover or tap any cell to inspect focus time';
+      }
+
+      const rowsHtml = DAYS_ORDER.map(d => {
+        let cellsHtml = '';
+        for (let h = 0; h < 24; h++) {
+          const st = matrix[d.key][h];
+          const mins = st.mins;
+          let lvl = 0;
+          if (mins > 0) {
+            if (maxCellMins <= 60) {
+              if (mins >= 45) lvl = 4;
+              else if (mins >= 30) lvl = 3;
+              else if (mins >= 15) lvl = 2;
+              else lvl = 1;
+            } else {
+              const ratio = mins / maxCellMins;
+              if (ratio >= 0.75) lvl = 4;
+              else if (ratio >= 0.5) lvl = 3;
+              else if (ratio >= 0.25) lvl = 2;
+              else lvl = 1;
+            }
+          }
+          const startHour = String(h).padStart(2, '0') + ':00';
+          const endHour = String((h + 1) % 24).padStart(2, '0') + ':00';
+          const tip = `${d.name} (${d.sinhala}) ${startHour} – ${endHour}: ${mins} mins (${st.count} ${st.count === 1 ? 'session' : 'sessions'})`;
+
+          cellsHtml += `
+            <td class="habit-cell-24 habit-cell-lvl-${lvl}"
+                data-day="${d.name}"
+                data-hour="${startHour}"
+                data-mins="${mins}"
+                data-count="${st.count}"
+                title="${escapeHtml(tip)}"
+                onmouseenter="showHabitCellDetail('${d.name}', '${d.sinhala}', '${startHour}', '${endHour}', ${mins}, ${st.count}, this)"
+                onclick="showHabitCellDetail('${d.name}', '${d.sinhala}', '${startHour}', '${endHour}', ${mins}, ${st.count}, this)">
+            </td>
+          `;
+        }
+
+        return `
+          <tr>
+            <td class="habit-day-td-sticky">
+              <div>${d.name}</div>
+              <small style="font-size:9.5px; color:var(--text-muted); font-weight:normal;">${d.sinhala}</small>
+            </td>
+            ${cellsHtml}
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+    }
+
+    // 4. Peak Study Time Periods Filter & Renderer (Items 2 & 3)
+    function setSlotFilter(subj, btn) {
+      currentSlotFilter = subj;
+      document.querySelectorAll('.slot-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderPeakTimeSlots();
+    }
+
+    function setPeakTimeframe(tf, btn) {
+      currentPeakTimeframe = tf;
+      const container = document.getElementById('peakTimeframeTabs');
+      if (container) {
+        container.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
+      }
+      if (btn) btn.classList.add('active');
+      renderPeakTimeSlots();
+    }
+
+    function renderPeakTimeSlots() {
+      const SLOTS_CONFIG = [
+        {
+          id: 'early_morning',
+          name: 'Early Morning',
+          range: '04:00 – 08:00',
+          sinhala: 'අලුයම / පෙරවරු',
+          icon: '🌅',
+          color: '#ff9f43'
+        },
+        {
+          id: 'morning',
+          name: 'Morning',
+          range: '08:00 – 12:00',
+          sinhala: 'උදය වරුව',
+          icon: '☀️',
+          color: '#fdcb6e'
+        },
+        {
+          id: 'afternoon',
+          name: 'Afternoon',
+          range: '12:00 – 17:00',
+          sinhala: 'දවල් / පස්වරුව',
+          icon: '🌤️',
+          color: '#00cec9'
+        },
+        {
+          id: 'evening',
+          name: 'Evening',
+          range: '17:00 – 21:00',
+          sinhala: 'සන්ධ්‍යා කාලය',
+          icon: '🌆',
+          color: '#6c5ce7'
+        },
+        {
+          id: 'late_night',
+          name: 'Late Night',
+          range: '21:00 – 04:00',
+          sinhala: 'රාත්‍රී / මැදියම',
+          icon: '🌙',
+          color: '#8854d0'
+        }
+      ];
+
+      // 1. Timeframe filter on allSessions before slot aggregation
+      const tfFiltered = filterSessionsByTimeframe(allSessions, currentPeakTimeframe);
+
+      // 2. Subject filter
+      const filteredSessions = tfFiltered.filter(s => {
+        if (currentSlotFilter === 'ALL') return true;
+        return (s.subject || '').toUpperCase() === currentSlotFilter;
+      });
+
+      let totalFilteredMins = 0;
+      const slotStats = {
+        early_morning: { mins: 0, count: 0 },
+        morning: { mins: 0, count: 0 },
+        afternoon: { mins: 0, count: 0 },
+        evening: { mins: 0, count: 0 },
+        late_night: { mins: 0, count: 0 }
+      };
+
+      filteredSessions.forEach(s => {
+        const mins = Number(s.duration_minutes) || 0;
+        totalFilteredMins += mins;
+
+        let dObj = null;
+        if (s.start_time) dObj = new Date(s.start_time);
+        else if (s.created_at) dObj = new Date(s.created_at);
+        else if (s.session_date) {
+          const timeStr = s.timer_start_time || '12:00';
+          dObj = new Date(`${s.session_date}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
+        }
+        if (!dObj || isNaN(dObj.getTime())) dObj = new Date();
+
+        const hr = dObj.getHours();
+        let slotId = 'late_night';
+        if (hr >= 4 && hr < 8) slotId = 'early_morning';
+        else if (hr >= 8 && hr < 12) slotId = 'morning';
+        else if (hr >= 12 && hr < 17) slotId = 'afternoon';
+        else if (hr >= 17 && hr < 21) slotId = 'evening';
+
+        slotStats[slotId].mins += mins;
+        slotStats[slotId].count++;
+      });
+
+      // Find real peak slot (only if has minutes > 0)
+      let peakSlotId = null;
+      let peakSlotMins = 0;
+      SLOTS_CONFIG.forEach(cfg => {
+        if (slotStats[cfg.id].mins > peakSlotMins) {
+          peakSlotMins = slotStats[cfg.id].mins;
+          peakSlotId = cfg.id;
+        }
+      });
+
+      // Update Highlight Banner
+      const highlightTitle = document.getElementById('slotHighlightTitle');
+      const highlightDesc = document.getElementById('slotHighlightDesc');
+      const filterLabel = currentSlotFilter === 'ALL' ? 'සියලු විෂයන් සඳහා' : `${currentSlotFilter} විෂය සඳහා`;
+
+      if (totalFilteredMins > 0 && peakSlotId) {
+        const peakCfg = SLOTS_CONFIG.find(c => c.id === peakSlotId) || SLOTS_CONFIG[0];
+        const peakHours = (slotStats[peakSlotId].mins / 60).toFixed(1);
+        const peakPct = Math.round((slotStats[peakSlotId].mins / totalFilteredMins) * 100);
+
+        if (highlightTitle) {
+          highlightTitle.innerText = `Peak Focus Window (${currentSlotFilter}): ${peakCfg.name} (${peakCfg.range})`;
+        }
+        if (highlightDesc) {
+          highlightDesc.innerText = `ඔබ ${filterLabel} වැඩිපුරම අවධානයෙන් පාඩම් කර ඇත්තේ ${peakCfg.sinhala} කාලයේදීය — තෝරාගත් කාල පරාසයේ සම්පූර්ණ කාලයෙන් ${peakPct}% (${peakHours} පැය, සැසි ${slotStats[peakSlotId].count}).`;
+        }
+      } else {
+        if (highlightTitle) {
+          highlightTitle.innerText = `තවමත් දත්ත නොමැත (${currentSlotFilter})`;
+        }
+        if (highlightDesc) {
+          highlightDesc.innerText = `${filterLabel} තෝරාගත් කාල පරාසය තුළ කිසිදු අධ්‍යයන සැසියක් සටහන් කර නොමැත.`;
+        }
+      }
+
+      // Render 5 Slot Cards
+      const gridEl = document.getElementById('timeSlotsGrid');
+      if (gridEl) {
+        gridEl.innerHTML = SLOTS_CONFIG.map(cfg => {
+          const st = slotStats[cfg.id];
+          const isPeak = (totalFilteredMins > 0 && cfg.id === peakSlotId);
+          const hrs = (st.mins / 60).toFixed(1);
+          const pct = totalFilteredMins > 0 ? Math.round((st.mins / totalFilteredMins) * 100) : 0;
+
+          return `
+            <div class="slot-card ${isPeak ? 'is-peak' : ''}">
+              <div class="slot-card-top">
+                <div class="slot-name-wrap">
+                  <span class="slot-icon">${cfg.icon}</span>
+                  <div>
+                    <div class="slot-name">${cfg.name} <span style="font-size:10px; color:var(--text-dim); font-weight:normal;">(${cfg.sinhala})</span></div>
+                    <div class="slot-range">${cfg.range}</div>
+                  </div>
+                </div>
+                ${isPeak ? '<span class="slot-badge-peak">★ PEAK</span>' : ''}
+              </div>
+              <div class="slot-metric-row">
+                <div>
+                  <span class="slot-hours">${hrs} <small style="font-size:11px; font-weight:600;">Hrs</small></span>
+                  <div class="slot-sessions">${st.count} ${st.count === 1 ? 'Session' : 'Sessions'}</div>
+                </div>
+                <div class="slot-pct-txt" style="color: ${cfg.color};">${pct}%</div>
+              </div>
+              <div class="slot-bar-track">
+                <div class="slot-bar-fill" style="width: ${pct}%; background: ${cfg.color};"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 5. Subject-wise Progress & Target Tracking (Dynamic Multi-Subject Engine)
+    function renderSubjectProgressSection() {
+      const activeSubjs = getActiveSubjects();
+      const stats = {};
+      let grandTotalMins = 0;
+
+      activeSubjs.forEach(s => {
+        const uSet = new Set(subjectCoverageUnits[s.code] || []);
+        let totalL = 10;
+        if (cachedCanonicalUnits && cachedCanonicalUnits[s.code] && cachedCanonicalUnits[s.code].length > 0) {
+          totalL = cachedCanonicalUnits[s.code].length;
+        }
+        stats[s.code] = {
+          mins: 0,
+          count: 0,
+          units: uSet,
+          totalLessons: totalL,
+          name: s.nameSi || s.code,
+          meta: s
+        };
+      });
+
+      allSessions.forEach(s => {
+        const sub = (s.subject || '').toUpperCase().trim();
+        const mins = Number(s.duration_minutes) || 0;
+        if (stats[sub]) {
+          stats[sub].mins += mins;
+          stats[sub].count++;
+          grandTotalMins += mins;
+          if (s.unit_number && Number(s.unit_number) > 0) {
+            stats[sub].units.add(Number(s.unit_number));
+          }
+        }
+      });
+
+      const grandTotalHours = (grandTotalMins / 60).toFixed(1);
+      const totalStudyTimeEl = document.getElementById('progTotalStudyTime');
+      if (totalStudyTimeEl) totalStudyTimeEl.innerText = `${grandTotalHours} Hrs`;
+
+      // Multi-segment balance bar & legend
+      const legendEl = document.getElementById('subjBalanceLegend');
+      const trackEl = document.getElementById('subjMultiTrack');
+
+      if (legendEl && trackEl) {
+        let legendHtml = '';
+        let trackHtml = '';
+        activeSubjs.forEach(s => {
+          const d = stats[s.code] || { mins: 0 };
+          const share = grandTotalMins > 0 ? Math.round((d.mins / grandTotalMins) * 100) : 0;
+          legendHtml += `
+            <span class="legend-dot-item">
+              <span class="dot" style="background: ${s.color};"></span>
+              ${s.code} <strong>${share}%</strong>
+            </span>
+          `;
+          if (share > 0) {
+            trackHtml += `
+              <div class="subj-multi-segment" style="width: ${share}%; background: ${s.color};" title="${s.code}: ${share}%"></div>
+            `;
+          }
+        });
+        legendEl.innerHTML = legendHtml;
+        trackEl.innerHTML = trackHtml || `<div class="subj-multi-segment" style="width: 100%; background: #2d3748;"></div>`;
+      }
+
+      // Detailed Cards Grid
+      const gridEl = document.getElementById('subjectDetailedProgressGrid');
+      if (gridEl) {
+        gridEl.innerHTML = activeSubjs.map(s => {
+          const d = stats[s.code] || { mins: 0, count: 0, units: new Set(), totalLessons: 10 };
+          const hrs = (d.mins / 60).toFixed(1);
+          const coveragePct = Math.min(100, Math.round((d.units.size / d.totalLessons) * 100));
+
+          let statusLabel = 'Not Started';
+          let badgeBg = 'rgba(255, 255, 255, 0.08)';
+          let badgeColor = '#8b949e';
+
+          if (coveragePct >= 100) {
+            statusLabel = 'Goal Reached 🏆';
+            badgeBg = 'rgba(32, 191, 107, 0.2)';
+            badgeColor = '#20bf6b';
+          } else if (coveragePct >= 50) {
+            statusLabel = 'Strong Pace 🚀';
+            badgeBg = 'rgba(9, 132, 227, 0.2)';
+            badgeColor = '#0984e3';
+          } else if (d.units.size > 0 || d.mins > 0) {
+            statusLabel = 'In Progress ⏳';
+            badgeBg = 'rgba(253, 203, 110, 0.2)';
+            badgeColor = '#fdcb6e';
+          }
+
+          return `
+            <div class="subject-prog-card" style="border-top: 3px solid ${s.color};">
+              <div class="subj-prog-top">
+                <div class="subj-prog-title-group">
+                  <span class="subj-prog-badge" style="background: ${s.color}25; color: ${s.color};">
+                    ${s.icon || '📘'} ${s.code}
+                  </span>
+                  <div class="subj-prog-name">${escapeHtml(s.nameSi || s.nameEn)}</div>
+                </div>
+                <div class="subj-prog-pct" style="color: ${s.color};">${coveragePct}%</div>
+              </div>
+              <div class="subj-prog-stats-row">
+                <div class="stat-col">
+                  <span class="stat-lbl">කාලය:</span>
+                  <strong class="stat-val">${hrs} Hrs</strong>
+                </div>
+                <div class="stat-col">
+                  <span class="stat-lbl">සැසි:</span>
+                  <strong class="stat-val">${d.count}</strong>
+                </div>
+                <div class="stat-col">
+                  <span class="stat-lbl">ආවරණය:</span>
+                  <strong class="stat-val">${d.units.size} / ${d.totalLessons} Units</strong>
+                </div>
+              </div>
+              <div class="subj-wide-bar-track">
+                <div class="subj-wide-bar-fill" style="width: ${coveragePct}%; background: linear-gradient(90deg, ${s.color}, #00cec9);"></div>
+              </div>
+              <div class="subj-prog-bottom">
+                <span>ඉලක්ක ප්‍රගතිය: <strong style="color: ${s.color};">${coveragePct}% Coverage (${hrs}h logged)</strong></span>
+                <span class="subj-badge-status" style="background: ${badgeBg}; color: ${badgeColor};">${statusLabel}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 6. Render Sessions History Table & Pagination
+    function getFilteredHistorySessions() {
+      const tfFiltered = filterSessionsByTimeframe(allSessions, currentHistoryTimeframe);
+      const subjectFiltered = tfFiltered.filter(s => {
+        if (currentHistoryFilter === 'ALL') return true;
+        return (s.subject || '').toUpperCase() === currentHistoryFilter;
+      });
+      // Enforce strict descending sorting by session start time (newest sessions first) BEFORE pagination slicing
+      return subjectFiltered.sort((a, b) => getSessionTimestamp(b) - getSessionTimestamp(a));
+    }
+
+    function setHistoryTimeframe(tf, btn) {
+      currentHistoryTimeframe = tf;
+      currentHistoryPage = 1;
+      const container = document.querySelector('.history-timeframe-tabs');
+      if (container) {
+        container.querySelectorAll('.hist-time-tab-btn').forEach(b => b.classList.remove('active'));
+      }
+      if (btn) btn.classList.add('active');
+      renderSessionsTable();
+    }
+
+    function setHistoryFilter(subj, btn) {
+      currentHistoryFilter = subj;
+      currentHistoryPage = 1;
+      const container = document.querySelector('.filter-pills-group');
+      if (container) {
+        container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      }
+      if (btn) btn.classList.add('active');
+      renderSessionsTable();
+    }
+
+    function prevHistoryPage() {
+      if (currentHistoryPage > 1) {
+        currentHistoryPage--;
+        renderSessionsTable();
+      }
+    }
+
+    function nextHistoryPage() {
+      const filtered = getFilteredHistorySessions();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / HISTORY_PAGE_SIZE));
+      if (currentHistoryPage < totalPages) {
+        currentHistoryPage++;
+        renderSessionsTable();
+      }
+    }
+
+    function renderSessionsTable() {
+      const tbody = document.getElementById('sessionsTableBody');
+      if (!tbody) return;
+
+      const filtered = getFilteredHistorySessions();
+      const countEl = document.getElementById('historyFilteredCount');
+      if (countEl) countEl.innerText = filtered.length;
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / HISTORY_PAGE_SIZE));
+      if (currentHistoryPage > totalPages) currentHistoryPage = totalPages;
+      if (currentHistoryPage < 1) currentHistoryPage = 1;
+
+      // Update pagination controls
+      const pageIndicator = document.getElementById('historyPageIndicator');
+      const btnPrev = document.getElementById('btnPagePrev');
+      const btnNext = document.getElementById('btnPageNext');
+      const paginationBar = document.getElementById('historyPaginationBar');
+
+      if (pageIndicator) pageIndicator.innerText = `Page ${currentHistoryPage} of ${totalPages}`;
+      if (btnPrev) btnPrev.disabled = (currentHistoryPage <= 1);
+      if (btnNext) btnNext.disabled = (currentHistoryPage >= totalPages);
+      if (paginationBar) {
+        paginationBar.style.display = filtered.length > 0 ? 'flex' : 'none';
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 22px;">මෙම පෙරහන යටතේ කිසිදු ටයිමර් සැසියක් සටහන් කර නොමැත (No study sessions recorded for this filter).</td></tr>';
+        return;
+      }
+
+      const startIndex = (currentHistoryPage - 1) * HISTORY_PAGE_SIZE;
+      const pageSessions = filtered.slice(startIndex, startIndex + HISTORY_PAGE_SIZE);
+
+      tbody.innerHTML = pageSessions.map(s => {
+        const startDate = s.timer_start_date || s.session_date || (s.start_time ? s.start_time.split('T')[0] : '-');
+        const startTime = s.timer_start_time || (s.start_time ? new Date(s.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-');
+        const stopDate = s.timer_stop_date || s.session_date || (s.end_time ? s.end_time.split('T')[0] : startDate);
+        const stopTime = s.timer_stop_time || (s.end_time ? new Date(s.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-');
+        const subj = (s.subject || 'MATH').toUpperCase().trim();
+        const meta = getSubjectMeta(subj);
+        const unitName = s.unit_name || (s.unit_number ? `Unit ${s.unit_number}` : 'සාමාන්‍ය පුනරීක්ෂණ');
+        const mins = Number(s.duration_minutes) || 50;
+        const syncBadge = s.synced ? '<span style="color:#20bf6b; font-size:10px;">🟢 Synced</span>' : '<span style="color:#fdcb6e; font-size:10px;">🟡 Local</span>';
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 600; color: #f0f6fc;">📅 ${startDate}</div>
+              <div style="font-size: 11px; color: #a29bfe; font-family: monospace;">⏱️ ${startTime}</div>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: #f0f6fc;">📅 ${stopDate}</div>
+              <div style="font-size: 11px; color: #55efc4; font-family: monospace;">🏁 ${stopTime}</div>
+            </td>
+            <td><span class="subj-pill" style="background:${meta.color}25; color:${meta.color}; border:1px solid ${meta.color}50;">${meta.icon || '📘'} ${meta.code}</span></td>
+            <td style="max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(unitName)}">
+              ${escapeHtml(unitName)}
+            </td>
+            <td><strong style="color:#6c5ce7; font-size:13px;">${mins} min</strong></td>
+            <td>
+              <div style="font-size: 11px; color: #20bf6b; font-weight: 600;">✅ Fully Completed</div>
+              ${syncBadge}
+            </td>
+            <td>
+              <div style="display: flex; gap: 5px;">
+                <button type="button" class="btn-table-action" onclick="editSessionDuration('${s.id}')" title="කාලය වෙනස් කරන්න">✏️ Edit</button>
+                <button type="button" class="btn-table-action btn-table-del" onclick="deleteSession('${s.id}')" title="ඉවත් කරන්න">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function editSessionDuration(sessionId) {
+      const sess = allSessions.find(s => s.id === sessionId);
+      if (!sess) return;
+      openEditDurationModal(sess);
+    }
+
+    async function deleteSession(sessionId) {
+      // Require security PIN verification before deletion
+      const ok = await requestPinVerification();
+      if (!ok) return;
+
+      allSessions = allSessions.filter(s => s.id !== sessionId);
+      saveCachedSessions(allSessions);
+
+      try {
+        const db = await openOfflineDB();
+        if (db) {
+          const storeName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+          const tx = db.transaction(storeName, 'readwrite');
+          tx.objectStore(storeName).delete(sessionId);
+        }
+      } catch (e) {}
+
+      const payload = { id: sessionId };
+      const sb = getSupabase();
+      if (navigator.onLine && sb) {
+        try {
+          let { error } = await sb.from('study_timer_sessions').delete().eq('id', sessionId);
+          if (error) {
+            const fbRes = await sb.from('study_sessions').delete().eq('id', sessionId);
+            if (fbRes.error) throw fbRes.error;
+          }
+        } catch (err) {
+          console.warn('Direct delete failed, enqueuing to sync_queue:', err);
+          await enqueueSyncTask('DELETE', 'study_timer_sessions', payload);
+        }
+      } else {
+        await enqueueSyncTask('DELETE', 'study_timer_sessions', payload);
+      }
+
+      await refreshAnalyticsData();
+    }
+
+    // 6. Manual Session Entry Modal
+    function openManualSessionModal() {
+      const modal = document.getElementById('manualSessionModal');
+      const dateInput = document.getElementById('manualDateInput');
+      const timeInput = document.getElementById('manualStartTimeInput');
+      const modalErr = document.getElementById('manualModalErrorMsg');
+      if (modalErr) modalErr.style.display = 'none';
+
+      const todayStr = getLocalDateString();
+      const nowTimeStr = getLocalTimeString();
+      if (dateInput) {
+        dateInput.value = todayStr;
+        dateInput.max = todayStr;
+        dateInput.removeAttribute('min');
+      }
+      if (timeInput) {
+        timeInput.value = nowTimeStr;
+      }
+      populateManualSubjects();
+      populateManualUnits();
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeManualSessionModal(e) {
+      const modal = document.getElementById('manualSessionModal');
+      if (e && e.target === modal) closeManualSessionModalDirect();
+    }
+
+    function closeManualSessionModalDirect() {
+      const modal = document.getElementById('manualSessionModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function populateManualUnits() {
+      const subj = document.getElementById('manualSubjSelect').value || 'MATH';
+      const unitSelect = document.getElementById('manualUnitSelect');
+      if (!unitSelect) return;
+      const canonicalMap = await loadCanonicalUnits();
+      let units = (canonicalMap && canonicalMap[subj]) ? canonicalMap[subj] : [];
+      if (!units || units.length === 0) {
+        units = Array.from({ length: 10 }, (_, i) => ({
+          unit_number: i + 1,
+          unit_name: `ඒකකය ${String(i + 1).padStart(2, '0')}`
+        }));
+      }
+
+      let opts = '<option value="0|සාමාන්‍ය පුනරීක්ෂණ (General Revision)">📚 සාමාන්‍ය පුනරීක්ෂණ සහ මිශ්‍ර ප්‍රශ්න</option>';
+      opts += units.map(u => {
+        let name = u.unit_name || `Unit ${u.unit_number}`;
+        if (!name.startsWith('ඒකකය') && !name.toLowerCase().startsWith('unit')) {
+          name = `ඒකකය ${String(u.unit_number).padStart(2, '0')}: ${name}`;
+        }
+        return `<option value="${u.unit_number}|${escapeHtml(name)}">${escapeHtml(name)}</option>`;
+      }).join('');
+      unitSelect.innerHTML = opts;
+    }
+
+    async function saveManualSession() {
+      const dur = parseInt(document.getElementById('manualDurationInput').value, 10);
+      const modalErr = document.getElementById('manualModalErrorMsg');
+      if (isNaN(dur) || dur <= 0 || dur > 480) {
+        if (modalErr) {
+          modalErr.textContent = 'කරුණාකර වලංගු මිනිත්තු සංඛ්‍යාවක් ලබාදෙන්න (1 - 480).';
+          modalErr.style.display = 'block';
+        }
+        return;
+      }
+
+      const todayLocal = getLocalDateString();
+      const dateInput = document.getElementById('manualDateInput');
+      let dateVal = (dateInput && dateInput.value) || todayLocal;
+      if (dateVal > todayLocal) {
+        if (modalErr) {
+          modalErr.textContent = 'අනාගත දිනයන් සඳහා අධ්‍යයන සැසි එක් කළ නොහැක (Future dates are not allowed).';
+          modalErr.style.display = 'block';
+        }
+        return;
+      }
+      if (modalErr) modalErr.style.display = 'none';
+
+      // Security PIN verification modal
+      const ok = await requestPinVerification();
+      if (!ok) return;
+
+      const subj = document.getElementById('manualSubjSelect').value;
+      const unitVal = document.getElementById('manualUnitSelect').value;
+      const [uNum, uName] = unitVal.split('|');
+      const rawTimeVal = (document.getElementById('manualStartTimeInput') && document.getElementById('manualStartTimeInput').value) || '09:00';
+      const timeVal = rawTimeVal.length === 5 ? rawTimeVal : rawTimeVal.substring(0, 5);
+      
+      // Calculate stop time & date based strictly on user input start date & time + duration_minutes
+      const [sYear, sMonth, sDay] = dateVal.split('-').map(Number);
+      const [sHour, sMin] = timeVal.split(':').map(Number);
+      const startDateTime = new Date(sYear, sMonth - 1, sDay, sHour, sMin, 0);
+      const stopDateTime = new Date(startDateTime.getTime() + dur * 60000);
+      const stopDateVal = getLocalDateString(stopDateTime);
+      const stopTimeVal = `${String(stopDateTime.getHours()).padStart(2, '0')}:${String(stopDateTime.getMinutes()).padStart(2, '0')}:${String(stopDateTime.getSeconds()).padStart(2, '0')}`;
+      const startTimeVal = `${timeVal}:00`;
+
+      const sessionId = generateUUID();
+
+      const newSess = {
+        id: sessionId,
+        subject: subj,
+        unit_number: Number(uNum) || 0,
+        unit_name: uName || 'සාමාන්‍ය පුනරීක්ෂණ',
+        timer_start_date: dateVal,
+        timer_start_time: startTimeVal,
+        timer_stop_date: stopDateVal,
+        timer_stop_time: stopTimeVal,
+        session_date: dateVal,
+        start_time: startDateTime.toISOString(),
+        end_time: stopDateTime.toISOString(),
+        duration_minutes: dur,
+        status: 'completed',
+        created_at: new Date().toISOString(),
+        synced: false
+      };
+
+      // Always save locally first to LocalStorage and IndexedDB
+      allSessions.unshift(newSess);
+      allSessions.sort((a, b) => getSessionTimestamp(b) - getSessionTimestamp(a));
+      saveCachedSessions(allSessions);
+
+      try {
+        const db = await openOfflineDB();
+        if (db) {
+          const storeName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+          const tx = db.transaction(storeName, 'readwrite');
+          tx.objectStore(storeName).put(newSess);
+        }
+      } catch (e) {
+        console.warn('Local IDB put error:', e);
+      }
+
+      const payload = {
+        id: newSess.id,
+        subject: newSess.subject,
+        unit_number: newSess.unit_number,
+        unit_name: newSess.unit_name,
+        timer_start_date: newSess.timer_start_date,
+        timer_start_time: newSess.timer_start_time,
+        timer_stop_date: newSess.timer_stop_date,
+        timer_stop_time: newSess.timer_stop_time,
+        session_date: newSess.session_date,
+        start_time: newSess.start_time,
+        end_time: newSess.end_time,
+        duration_minutes: newSess.duration_minutes,
+        status: newSess.status,
+        created_at: newSess.created_at
+      };
+
+      const sb = getSupabase();
+      if (navigator.onLine && sb) {
+        try {
+          let { error } = await sb.from('study_timer_sessions').insert([payload]);
+          if (error) {
+            console.warn('Direct insert to study_timer_sessions error, attempting fallback:', error);
+            const fbRes = await sb.from('study_sessions').insert([{
+              id: payload.id,
+              subject: payload.subject,
+              duration_minutes: payload.duration_minutes,
+              session_date: payload.session_date,
+              created_at: payload.created_at
+            }]);
+            if (fbRes.error) throw fbRes.error;
+          }
+          newSess.synced = true;
+          saveCachedSessions(allSessions);
+          try {
+            const db = await openOfflineDB();
+            if (db) {
+              const storeName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+              const tx = db.transaction(storeName, 'readwrite');
+              tx.objectStore(storeName).put(newSess);
+            }
+          } catch (_) {}
+        } catch (err) {
+          console.warn('Supabase direct insert failed, enqueuing for sync:', err);
+          await enqueueSyncTask('INSERT', 'study_timer_sessions', payload);
+        }
+      } else {
+        await enqueueSyncTask('INSERT', 'study_timer_sessions', payload);
+      }
+
+      closeManualSessionModalDirect();
+      await refreshAnalyticsData();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    // Explicitly expose all interactive handlers to window for inline onclick attributes
+    window.openManualSessionModal = openManualSessionModal;
+    window.closeManualSessionModal = closeManualSessionModal;
+    window.closeManualSessionModalDirect = closeManualSessionModalDirect;
+    window.populateManualUnits = populateManualUnits;
+    window.saveManualSession = saveManualSession;
+    window.setTimeframeWeeks = setTimeframeWeeks;
+    window.setDetailPeriod = setDetailPeriod;
+    window.handleHeatCellClick = handleHeatCellClick;
+    window.setDoughnutTimeframe = setDoughnutTimeframe;
+    window.setTrendTimeframe = setTrendTimeframe;
+    window.renderDoughnutChart = renderDoughnutChart;
+    window.renderTrendBarChart = renderTrendBarChart;
+    window.renderWeeklyHabitMatrix = renderWeeklyHabitMatrix;
+    window.setHabitMatrixTimeframe = setHabitMatrixTimeframe;
+    window.setSlotFilter = setSlotFilter;
+    window.setHistoryFilter = setHistoryFilter;
+    window.setHistoryTimeframe = setHistoryTimeframe;
+    window.prevHistoryPage = prevHistoryPage;
+    window.nextHistoryPage = nextHistoryPage;
+    window.refreshAnalyticsData = refreshAnalyticsData;
+    window.editSessionDuration = editSessionDuration;
+    window.deleteSession = deleteSession;
+    window.enqueueSyncTask = enqueueSyncTask;
+    window.processSyncQueue = processSyncQueue;
+    window.updateSyncUI = updateSyncUI;
+    window.setPeakTimeframe = setPeakTimeframe;
+    window.showHabitCellDetail = showHabitCellDetail;
+    window.confirmPinModal = confirmPinModal;
+    window.cancelPinModal = cancelPinModal;
+    window.closePinModal = closePinModal;
+    window.requestPinVerification = requestPinVerification;
+    window.openEditDurationModal = openEditDurationModal;
+    window.closeEditDurationModalDirect = closeEditDurationModalDirect;
+    window.closeEditDurationModal = closeEditDurationModal;
+    window.saveEditedDurationDirect = saveEditedDurationDirect;
+
+    // Keyboard support for Enter/Escape on PIN and Duration modals
+    document.addEventListener('keydown', (e) => {
+      const pinModal = document.getElementById('securityPinModal');
+      if (pinModal && pinModal.style.display === 'flex') {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          confirmPinModal();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelPinModal();
+        }
+      }
+      const durModal = document.getElementById('editDurationModal');
+      if (durModal && durModal.style.display === 'flex') {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveEditedDurationDirect();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeEditDurationModalDirect();
+        }
+      }
+    });
+
+    // 7. Mock Data Generation Utility for Instant Testing
+    window.__generateMockTestSessions = async function(count = 35) {
+      const activeList = getActiveSubjects();
+      const subjects = activeList.length > 0 ? activeList.map(s => s.code) : ['MATH', 'SCI', 'SIN', 'ENG'];
+      const pastDaysOffsets = [0, 1, 3, 6, 12, 25, 60, 120];
+      const durations = [25, 30, 45, 50, 60, 75, 90, 120];
+      const startTimes = ['06:30', '08:45', '10:15', '13:30', '15:45', '18:15', '20:30', '22:00'];
+
+      const newMocks = [];
+      const now = new Date();
+
+      for (let i = 0; i < count; i++) {
+        const subj = subjects[i % subjects.length];
+        const uNum = (i % 10) + 1;
+        const unitObj = { unit_number: uNum, unit_name: `ඒකකය ${String(uNum).padStart(2, '0')}` };
+        
+        // Distribute across today, yesterday, 3d, 6d, 12d, 25d, 60d, 120d ago
+        const daysAgo = pastDaysOffsets[i % pastDaysOffsets.length];
+        const targetD = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo);
+        const dateStr = getLocalDateString(targetD);
+
+        const timeStr = startTimes[i % startTimes.length];
+        const dur = durations[i % durations.length];
+
+        const [hr, min] = timeStr.split(':').map(Number);
+        const startDateTime = new Date(targetD.getFullYear(), targetD.getMonth(), targetD.getDate(), hr, min, 0);
+        const stopDateTime = new Date(startDateTime.getTime() + dur * 60000);
+        const stopDateStr = getLocalDateString(stopDateTime);
+        const stopTimeStr = `${String(stopDateTime.getHours()).padStart(2, '0')}:${String(stopDateTime.getMinutes()).padStart(2, '0')}:${String(stopDateTime.getSeconds()).padStart(2, '0')}`;
+
+        const mockSess = {
+          id: 'mock_' + generateUUID(),
+          subject: subj,
+          unit_number: unitObj.unit_number,
+          unit_name: unitObj.unit_name,
+          timer_start_date: dateStr,
+          timer_start_time: timeStr + ':00',
+          timer_stop_date: stopDateStr,
+          timer_stop_time: stopTimeStr,
+          session_date: dateStr,
+          start_time: startDateTime.toISOString(),
+          end_time: stopDateTime.toISOString(),
+          duration_minutes: dur,
+          status: 'completed',
+          created_at: startDateTime.toISOString(),
+          synced: true
+        };
+        newMocks.push(mockSess);
+      }
+
+      // Merge into allSessions without duplicating
+      const map = new Map();
+      allSessions.forEach(s => map.set(s.id, s));
+      newMocks.forEach(m => map.set(m.id, m));
+      allSessions = Array.from(map.values());
+      allSessions.sort((a, b) => getSessionTimestamp(b) - getSessionTimestamp(a));
+
+      // Save to cache
+      saveCachedSessions(allSessions);
+
+      // Save to IndexedDB
+      try {
+        const db = await openOfflineDB();
+        if (db) {
+          const storeName = db.objectStoreNames.contains('study_timer_sessions') ? 'study_timer_sessions' : 'study_sessions';
+          const tx = db.transaction(storeName, 'readwrite');
+          newMocks.forEach(m => tx.objectStore(storeName).put(m));
+        }
+      } catch (e) {
+        console.warn('Local IDB put mock sessions error:', e);
+      }
+
+      // Re-render UI components reactively
+      renderKPIs();
+      renderComprehensiveHeatmap();
+      renderPeakTimeSlots();
+      renderWeeklyHabitMatrix();
+      renderSubjectProgressSection();
+      renderVisualCharts();
+      renderSessionsTable();
+
+      console.log(`[MockGenerator] Successfully generated ${newMocks.length} mock sessions across ICT, ET, SFT!`);
+      return newMocks;
+    };
+
+    // Automatic cleanup of legacy/corrupted sessions (SFT, ET, 0-duration)
+    async function purgeLegacyAndCorruptSessions(notifyUser = false) {
+      try {
+        // 1. Purge from LocalStorage
+        let localSessions = getCachedSessions();
+        localSessions = localSessions.filter(s => {
+          if (!s) return false;
+          const subj = (s.subject || '').toUpperCase().trim();
+          if (subj === 'SFT' || subj === 'ET') return false;
+          const mins = Number(s.duration_minutes) || 0;
+          const secs = Number(s.duration_seconds) || 0;
+          if (mins <= 0 && secs <= 0) return false;
+          return true;
+        });
+        saveCachedSessions(localSessions);
+        allSessions = localSessions;
+
+        // 2. Purge from IndexedDB
+        const db = await openOfflineDB();
+        if (db) {
+          ['study_timer_sessions', 'study_sessions'].forEach(storeName => {
+            if (db.objectStoreNames.contains(storeName)) {
+              try {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                const req = store.getAll();
+                req.onsuccess = () => {
+                  (req.result || []).forEach(item => {
+                    const subj = (item.subject || '').toUpperCase().trim();
+                    const mins = Number(item.duration_minutes) || 0;
+                    const secs = Number(item.duration_seconds) || 0;
+                    if (subj === 'SFT' || subj === 'ET' || (mins <= 0 && secs <= 0)) {
+                      store.delete(item.id);
+                    }
+                  });
+                };
+              } catch (_) {}
+            }
+          });
+
+          if (db.objectStoreNames.contains('sync_queue')) {
+            try {
+              const qTx = db.transaction('sync_queue', 'readwrite');
+              const qStore = qTx.objectStore('sync_queue');
+              const qReq = qStore.getAll();
+              qReq.onsuccess = () => {
+                (qReq.result || []).forEach(task => {
+                  const pSubj = ((task.payload && task.payload.subject) || '').toUpperCase().trim();
+                  if (pSubj === 'SFT' || pSubj === 'ET') {
+                    qStore.delete(task.queue_id);
+                  }
+                });
+              };
+            } catch (_) {}
+          }
+        }
+
+        // 3. Purge from Supabase if online
+        const sb = getSupabase();
+        if (navigator.onLine && sb) {
+          try {
+            await sb.from('study_timer_sessions').delete().in('subject', ['SFT', 'ET']);
+            await sb.from('study_timer_sessions').delete().eq('duration_minutes', 0).eq('duration_seconds', 0);
+          } catch (_) {}
+        }
+
+        await refreshAnalyticsData();
+
+        if (notifyUser) {
+          alert('පැරණි දත්ත (SFT / 0-min සැසි) සාර්ථකව පිරිසිදු කරන ලදී. නව Database එක සමඟ Sync විය.');
+        }
+      } catch (err) {
+        console.warn('Purge legacy sessions error:', err);
+      }
+    }
+    window.purgeLegacyAndCorruptSessions = purgeLegacyAndCorruptSessions;
+
+    function initDateConstraints() {
+      const dateInput = document.getElementById('manualDateInput');
+      if (dateInput) {
+        const todayStr = getLocalDateString();
+        dateInput.value = todayStr;
+        dateInput.max = todayStr;
+        dateInput.removeAttribute('min');
+      }
+    }
+
+    // Storage and online listeners
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'al_study_sessions_cache' || e.key === TIMER_STORAGE_KEY || e.key === 'al_sync_queue') {
+        refreshAnalyticsData();
+        updateSyncUI();
+      }
+    });
+
+    window.addEventListener('online', async () => {
+      await updateSyncUI('syncing');
+      await processSyncQueue();
+      await refreshAnalyticsData();
+    });
+
+    window.addEventListener('offline', () => {
+      updateSyncUI();
+    });
+
+    // Robust initialization on page load
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', async () => {
+        updateFilterButtons();
+        initDateConstraints();
+        initLiveTimerStream();
+        await purgeLegacyAndCorruptSessions(false);
+        refreshAnalyticsData();
+      });
+    } else {
+      updateFilterButtons();
+      initDateConstraints();
+      initLiveTimerStream();
+      purgeLegacyAndCorruptSessions(false).then(() => refreshAnalyticsData());
+    }
+  </script>
+</body>
+</html>

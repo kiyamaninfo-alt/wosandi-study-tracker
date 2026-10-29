@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <base target="_top">
+    <title>Syllabus Manager</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20width%3D%2264%22%20height%3D%2264%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22appLogoGrad%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%22100%25%22%20y2%3D%22100%25%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%238c7ae6%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2300cec9%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22url(%23appLogoGrad)%22%2F%3E%3Cg%20transform%3D%22translate(8%2C%208)%20scale(2)%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M12%202L3%207L12%2012L21%207L12%202Z%22%20fill%3D%22%23ffffff%22%2F%3E%3Cpath%20d%3D%22M3%2013L12%2018L21%2013%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M3%2017L12%2022L21%2017%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+    <link rel="apple-touch-icon" href="/app-logo.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/env.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      (function() {
+        function syncTheme() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const paramTheme = urlParams.get('theme');
+          const saved = paramTheme || localStorage.getItem('al_study_tracker_theme') || 'system';
+          const isDark = saved === 'dark' || (saved === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark-mode');
+            if (document.body) document.body.classList.add('dark-mode');
+          } else {
+            document.documentElement.classList.remove('dark-mode');
+            if (document.body) document.body.classList.remove('dark-mode');
+          }
+        }
+        syncTheme();
+        window.syncTheme = syncTheme;
+        document.addEventListener('DOMContentLoaded', syncTheme);
+        window.addEventListener('load', syncTheme);
+        window.addEventListener('message', function(e) {
+          if (e.data && e.data.action === 'THEME_CHANGE') {
+            if (e.data.theme === 'dark') {
+              document.documentElement.classList.add('dark-mode');
+              if (document.body) document.body.classList.add('dark-mode');
+            } else if (e.data.theme === 'light') {
+              document.documentElement.classList.remove('dark-mode');
+              if (document.body) document.body.classList.remove('dark-mode');
+            } else {
+              syncTheme();
+            }
+          }
+        });
+      })();
+    </script>
+    <style>
+      :root {
+        --primary: #8c7ae6;
+        --primary-hover: #786fa6;
+        --bg-color: #f8f9fa;
+        --card-bg: #ffffff;
+        --text-dark: #2d3436;
+        --text-muted: #7f8fa6;
+        --border-color: #dfe6e9;
+      }
+      :root.dark-mode, body.dark-mode {
+        --primary: #8c7ae6;
+        --primary-hover: #a29bfe;
+        --bg-color: #0d1117;
+        --card-bg: #161b22;
+        --text-dark: #f0f6fc;
+        --text-muted: #8b949e;
+        --border-color: #30363d;
+      }
+      body {
+        font-family: 'Poppins', 'Noto Sans Sinhala', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-dark);
+        margin: 0;
+        padding: 10px;
+        font-size: 11px;
+      }
+      :root.dark-mode body, body.dark-mode {
+        background-color: var(--bg-color);
+        color: var(--text-dark);
+      }
+      /* Tab Bar */
+      .tab-bar {
+        display: flex;
+        background: #e4e7eb;
+        border-radius: 10px;
+        padding: 3px;
+        margin-bottom: 12px;
+        gap: 2px;
+      }
+      :root.dark-mode .tab-bar, body.dark-mode .tab-bar {
+        background: #161b22;
+        border: 1px solid #30363d;
+      }
+      .tab-btn {
+        flex: 1;
+        padding: 6px 2px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        white-space: nowrap;
+      }
+      .tab-btn.active {
+        background: var(--card-bg);
+        color: var(--primary);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      }
+      :root.dark-mode .tab-btn.active, body.dark-mode .tab-btn.active {
+        background: #21262d;
+        color: #a29bfe;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      }
+      .tab-content { display: none; }
+      .tab-content.active { display: block; }
+
+      /* Card Styling */
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 10px;
+      }
+      :root.dark-mode .card, body.dark-mode .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      }
+      .form-group { margin-bottom: 10px; }
+      .form-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+        display: block;
+      }
+      :root.dark-mode .form-label, body.dark-mode .form-label {
+        color: #f0f6fc;
+      }
+      .form-input, .form-select {
+        width: 100%;
+        padding: 7px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 11px;
+        font-family: inherit;
+        box-sizing: border-box;
+        outline: none;
+      }
+      :root.dark-mode .form-input, :root.dark-mode .form-select,
+      body.dark-mode .form-input, body.dark-mode .form-select {
+        background: #0d1117;
+        color: #f0f6fc;
+        border-color: #30363d;
+        color-scheme: dark;
+      }
+      .form-input:focus, .form-select:focus {
+        border-color: var(--primary);
+      }
+
+      /* Locked Prefix Input Group */
+      .input-group-locked {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f1f2f6;
+      }
+      :root.dark-mode .input-group-locked, body.dark-mode .input-group-locked {
+        background: #0d1117;
+        border-color: #30363d;
+      }
+      .locked-prefix {
+        padding: 7px 8px;
+        font-weight: 600;
+        color: #57606f;
+        font-size: 11px;
+        background: #e4e7eb;
+        white-space: nowrap;
+        user-select: none;
+      }
+      :root.dark-mode .locked-prefix, body.dark-mode .locked-prefix {
+        background: #21262d;
+        color: #8b949e;
+        border-right: 1px solid #30363d;
+      }
+      .locked-input {
+        border: none;
+        padding: 7px 8px;
+        font-family: inherit;
+        font-size: 11px;
+        outline: none;
+        width: 100%;
+        background: #ffffff;
+      }
+      :root.dark-mode .locked-input, body.dark-mode .locked-input {
+        background: #0d1117;
+        color: #f0f6fc;
+      }
+      :root.dark-mode #editEmptyMsg, body.dark-mode #editEmptyMsg {
+        color: #8b949e !important;
+      }
+
+      /* Buttons */
+      .btn-primary {
+        width: 100%;
+        padding: 9px;
+        background: linear-gradient(135deg, var(--primary), #6c5ce7);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 11px;
+        cursor: pointer;
+        transition: transform 0.1s ease;
+      }
+      .btn-primary:hover { transform: scale(1.01); }
+      .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+      .btn-secondary {
+        width: 100%;
+        padding: 7px;
+        background: #dfe6e9;
+        color: var(--text-dark);
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      :root.dark-mode .btn-secondary, body.dark-mode .btn-secondary {
+        background: #21262d;
+        color: #c9d1d9;
+        border: 1px solid #30363d;
+      }
+      .btn-secondary:hover { opacity: 0.85; }
+
+      /* Search List Results */
+      .search-result-item {
+        background: #ffffff;
+        border: 1px solid #edf2f7;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        transition: all 0.15s ease;
+      }
+      :root.dark-mode .search-result-item, body.dark-mode .search-result-item {
+        background: #161b22;
+        border-color: #30363d;
+      }
+      .search-result-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 6px rgba(140, 122, 230, 0.15);
+      }
+      :root.dark-mode .search-result-item:hover, body.dark-mode .search-result-item:hover {
+        border-color: var(--primary);
+        background: #1c2128;
+      }
+      .res-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .badge-subj {
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      :root.dark-mode #addPasswordError, body.dark-mode #addPasswordError,
+      :root.dark-mode #editPasswordError, body.dark-mode #editPasswordError,
+      :root.dark-mode #subjPasswordError, body.dark-mode #subjPasswordError {
+        color: #ff6b6b !important;
+      }
+
+      .res-title { font-weight: 600; font-size: 11px; line-height: 1.3; }
+      :root.dark-mode .res-title, body.dark-mode .res-title { color: #f0f6fc; }
+      .res-unit { font-size: 9px; color: var(--text-muted); }
+      :root.dark-mode .res-unit, body.dark-mode .res-unit { color: #8b949e; }
+      .res-actions { display: flex; gap: 4px; margin-top: 4px; }
+      .action-btn {
+        flex: 1;
+        padding: 4px 6px;
+        font-size: 9px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      :root.dark-mode .action-btn, body.dark-mode .action-btn {
+        background: #21262d;
+        color: #c9d1d9;
+        border-color: #30363d;
+      }
+      .action-btn.jump:hover { background: #8c7ae6; color: white; border-color: #8c7ae6; }
+      .action-btn.edit:hover { background: #00cec9; color: white; border-color: #00cec9; }
+      .action-btn.del:hover { background: #e74c3c; color: white; border-color: #e74c3c; }
+
+      /* Subject Item Card */
+      .subject-card-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 7px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition: all 0.15s ease;
+      }
+      :root.dark-mode .subject-card-item, body.dark-mode .subject-card-item {
+        background: #161b22;
+        border-color: #30363d;
+      }
+      .subj-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .subj-card-actions {
+        display: flex;
+        gap: 4px;
+      }
+
+      /* Alert Feedback */
+      .status-box {
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 10px;
+        margin-top: 8px;
+        display: none;
+        line-height: 1.4;
+      }
+      .status-box.success { background: #e6f4ea; color: #2e7d32; border: 1px solid #c8e6c9; }
+      .status-box.error { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
+      :root.dark-mode .status-box.success, body.dark-mode .status-box.success { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border-color: rgba(46, 204, 113, 0.35); }
+      :root.dark-mode .status-box.error, body.dark-mode .status-box.error { background: rgba(231, 76, 60, 0.15); color: #ff7675; border-color: rgba(231, 76, 60, 0.35); }
+
+      /* Mobile Responsive Styles */
+      @media (max-width: 500px) {
+        body {
+          padding: 8px 6px;
+        }
+        .tab-btn {
+          font-size: 8.5px;
+          padding: 5px 1px;
+        }
+        .card {
+          padding: 10px;
+        }
+        .form-input, .form-select, .locked-input {
+          font-size: 11px;
+          padding: 6px 8px;
+        }
+        .btn-primary {
+          font-size: 11px;
+          padding: 9px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Brand Header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; border-bottom: 1px solid rgba(140, 122, 230, 0.2);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #8c7ae6 0%, #00cec9 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(140, 122, 230, 0.35);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L3 7L12 12L21 7L12 2Z" fill="#ffffff"/>
+            <path d="M3 13L12 18L21 13" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span style="font-size: 12.5px; font-weight: 700; color: #8c7ae6;">Wosandi G9 Syllabus</span>
+      </div>
+      <span style="font-size: 10px; font-weight: 600; color: #7f8fa6;">Mission Control</span>
+    </div>
+
+    <!-- Tab Navigation (4 Tabs) -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('tabSearch')">🔍 සොයන්න</button>
+      <button class="tab-btn" onclick="switchTab('tabAdd')">➕ එක් කරන්න</button>
+      <button class="tab-btn" onclick="switchTab('tabEdit')">✏️ සංස්කරණය</button>
+      <button class="tab-btn" onclick="switchTab('tabSubjects')">📚 විෂයයන්</button>
+    </div>
+
+    <!-- 1. SEARCH & JUMP TAB -->
+    <div id="tabSearch" class="tab-content active">
+      <div class="card">
+        <div class="form-group" style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <select class="form-select" id="searchSubjectFilter" onchange="handleSearch()" style="width: 42%; font-size: 10.5px;">
+            <option value="ALL">සියලුම විෂයයන් (All)</option>
+          </select>
+          <input type="text" class="form-input" id="searchBox" placeholder="අංකය හෝ නමක් සොයන්න..." oninput="handleSearch()" style="width: 58%;">
+        </div>
+        <div id="searchResults" style="max-height: 480px; overflow-y: auto;">
+          <div style="text-align: center; color: var(--text-muted); padding: 20px 0;">දත්ත පූරණය වෙමින් පවතී...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. ADD NEW LESSON TAB (1-Level Main Unit) -->
+    <div id="tabAdd" class="tab-content">
+      <div class="card">
+        <form id="addForm" onsubmit="submitNewLesson(event)">
+          <div class="form-group">
+            <label class="form-label">විෂය (Subject) *</label>
+            <select class="form-select" id="addSubject" onchange="onAddSubjectChange()" required>
+              <!-- Populated Dynamically from active subjects -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">පාඩම් / ඒකක අංකය (Unit Number) *</label>
+            <div class="input-group-locked">
+              <span class="locked-prefix">ඒකකය</span>
+              <input type="number" class="locked-input" id="unitNumInput" min="1" max="99" required placeholder="අංකය (උදා: 1)">
+            </div>
+            <div style="font-size: 9px; color: var(--text-muted); margin-top: 3px;" id="unitNumberHint">ඊළඟ අංකය ස්වයංක්‍රීයව යෝජනා කෙරේ (වෙනස් කළ හැක)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">පාඩමේ / ඒකකයේ නම (Unit Title) *</label>
+            <input type="text" class="form-input" id="unitTitleInput" placeholder="උදා: සංඛ්‍යා රටා" required>
+          </div>
+
+          <div class="form-group" style="margin-top: 8px;">
+            <label class="form-label" style="font-weight: 700;">🔒 තහවුරු කිරීමේ මුරපදය (Security Password) *</label>
+            <input type="password" class="form-input" id="addPassword" placeholder="මුරපදය ඇතුළත් කරන්න (3408)" style="font-size: 11px; padding: 7px 10px; text-align: center; letter-spacing: 2px;" autocomplete="off" required>
+            <div id="addPasswordError" style="display: none; color: #d63031; font-size: 10px; margin-top: 3px; font-weight: 600; text-align: center;">
+              ⚠️ මුරපදය වැරදියි! කරුණාකර නැවත උත්සාහ කරන්න.
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="addBtn">+ නව ඒකකය සුරකින්න</button>
+        </form>
+        <div class="status-box" id="addStatus"></div>
+      </div>
+    </div>
+
+    <!-- 3. EDIT LESSON TAB (1-Level Main Unit) -->
+    <div id="tabEdit" class="tab-content">
+      <div class="card">
+        <div id="editEmptyMsg" style="text-align: center; color: var(--text-muted); padding: 20px 0;">
+          කරුණාකර <strong>🔍 සොයන්න</strong> ටැබ් එක වෙත ගොස් සංස්කරණය කිරීමට අවශ්‍ය පාඩමෙහි <strong>✏️ Edit</strong> ඔබන්න.
+        </div>
+
+        <form id="editForm" style="display: none;" onsubmit="submitEditLesson(event)">
+          <div class="form-group">
+            <label class="form-label">තෝරාගත් පාඩම (Read-only)</label>
+            <div style="font-weight: 700; font-size: 13px;" id="editHeaderTag">[MATH] ඒකකය 01</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">පාඩමේ / ඒකකයේ නම (Unit Title) *</label>
+            <div class="input-group-locked">
+              <span class="locked-prefix" id="editPrefix">ඒකකය 01:</span>
+              <input type="text" class="locked-input" id="editUnitTitleInput" placeholder="පාඩමේ නම ඇතුළත් කරන්න" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 8px;">
+            <label class="form-label" style="font-weight: 700;">🔒 තහවුරු කිරීමේ මුරපදය (Security Password) *</label>
+            <input type="password" class="form-input" id="editPassword" placeholder="මුරපදය ඇතුළත් කරන්න (3408)" style="font-size: 11px; padding: 7px 10px; text-align: center; letter-spacing: 2px;" autocomplete="off" required>
+            <div id="editPasswordError" style="display: none; color: #d63031; font-size: 10px; margin-top: 3px; font-weight: 600; text-align: center;">
+              ⚠️ මුරපදය වැරදියි! කරුණාකර නැවත උත්සාහ කරන්න.
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="editBtn">💾 නම යාවත්කාලීන කරන්න</button>
+        </form>
+        <div class="status-box" id="editStatus"></div>
+      </div>
+    </div>
+
+    <!-- 4. SUBJECT MANAGER TAB -->
+    <div id="tabSubjects" class="tab-content">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <div style="font-weight: 700; font-size: 12px; color: var(--text-dark);">📚 විෂය කළමනාකරණය</div>
+            <div style="font-size: 9.5px; color: var(--text-muted);" id="activeSubjectsCount">ක්‍රියාකාරී: 13 / 13</div>
+          </div>
+          <button type="button" class="btn-secondary" onclick="resetSubjectsToDefault()" style="width: auto; padding: 4px 8px; font-size: 9px;" title="පෙරනිමි විෂයයන් 13 යළි පිහිටුවන්න">
+            🔄 පෙරනිමි (Reset)
+          </button>
+        </div>
+
+        <!-- Add / Edit Subject Form -->
+        <form id="subjectForm" onsubmit="submitSubjectForm(event)" style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+          <div style="font-weight: 700; font-size: 11px; margin-bottom: 8px; color: var(--primary);" id="subjFormTitle">➕ නව විෂයයක් එක් කරන්න</div>
+          
+          <div class="form-group">
+            <label class="form-label">විෂය කේතය (Subject Code) *</label>
+            <input type="text" class="form-input" id="subjCode" placeholder="උදා: MATH" maxlength="10" required style="text-transform: uppercase;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">විෂය නම - සිංහල (Display Name) *</label>
+            <input type="text" class="form-input" id="subjNameSi" placeholder="උදා: ගණිතය" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">විෂය නම - ඉංග්‍රීසි (English Name)</label>
+            <input type="text" class="form-input" id="subjNameEn" placeholder="උදා: Mathematics">
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+            <div style="flex: 1;">
+              <label class="form-label">වර්ණය (Color)</label>
+              <input type="color" id="subjColor" value="#0984e3" style="width: 100%; height: 32px; padding: 2px; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; background: transparent;">
+            </div>
+            <div style="flex: 1;">
+              <label class="form-label">අයිකනය (Icon)</label>
+              <input type="text" class="form-input" id="subjIcon" placeholder="📐" maxlength="4" value="📐" style="text-align: center; font-size: 14px;">
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <label class="form-label">ක්‍රියාකාරීද</label>
+              <input type="checkbox" id="subjActive" checked style="width: 18px; height: 18px; cursor: pointer; margin-top: 4px;">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 6px;">
+            <label class="form-label" style="font-weight: 700;">🔒 තහවුරු කිරීමේ මුරපදය (Security Password) *</label>
+            <input type="password" class="form-input" id="subjPassword" placeholder="මුරපදය ඇතුළත් කරන්න (3408)" style="font-size: 11px; padding: 6px 8px; text-align: center; letter-spacing: 2px;" autocomplete="off" required>
+            <div id="subjPasswordError" style="display: none; color: #d63031; font-size: 10px; margin-top: 3px; font-weight: 600; text-align: center;">
+              ⚠️ මුරපදය වැරදියි! කරුණාකර නැවත උත්සාහ කරන්න.
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <button type="submit" class="btn-primary" id="subjSubmitBtn">+ නව විෂය එක් කරන්න</button>
+            <button type="button" class="btn-secondary" id="cancelEditSubjBtn" onclick="cancelEditSubject()" style="display: none; width: auto; padding: 8px 12px;">අවලංගු කරන්න</button>
+          </div>
+        </form>
+
+        <div class="status-box" id="subjStatus"></div>
+
+        <!-- Subjects List Container -->
+        <div style="font-weight: 700; font-size: 11px; margin-bottom: 8px; color: var(--text-dark);">වත්මන් විෂය ලැයිස්තුව:</div>
+        <div id="subjectsListContainer" style="max-height: 380px; overflow-y: auto;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Supabase Client Configuration ---
+      const SUPABASE_URL = (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__.SUPABASE_URL) || 'https://klcbypzapfojjakoehgx.supabase.co';
+      const SUPABASE_ANON_KEY = (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__.SUPABASE_ANON_KEY) || 'sb_publishable_hg4IZNmibddbNsxe5t0aZQ_1XUUBxBp';
+      var supabase = (window.supabase && typeof window.supabase.createClient === 'function' && SUPABASE_URL && SUPABASE_ANON_KEY)
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+              detectSessionInUrl: false
+            }
+          })
+        : null;
+
+      // 13 Grade 9 Subjects Default Configuration
+      const DEFAULT_G9_SUBJECTS = [
+        { code: 'MATH', nameSi: 'ගණිතය', nameEn: 'Mathematics', color: '#0984e3', icon: '📐', active: true },
+        { code: 'SCI', nameSi: 'විද්‍යාව', nameEn: 'Science', color: '#00b894', icon: '🔬', active: true },
+        { code: 'SIN', nameSi: 'සිංහල', nameEn: 'Sinhala', color: '#e17055', icon: '📘', active: true },
+        { code: 'ENG', nameSi: 'ඉංග්‍රීසි', nameEn: 'English', color: '#6c5ce7', icon: '🔤', active: true },
+        { code: 'BUD', nameSi: 'බුද්ධ ධර්මය', nameEn: 'Buddhism', color: '#f39c12', icon: '☸️', active: true },
+        { code: 'HIST', nameSi: 'ඉතිහාසය', nameEn: 'History', color: '#d35400', icon: '🏛️', active: true },
+        { code: 'GEO', nameSi: 'භූගෝල විද්‍යාව', nameEn: 'Geography', color: '#27ae60', icon: '🌍', active: true },
+        { code: 'CIV', nameSi: 'පුරවැසි අධ්‍යාපනය', nameEn: 'Civic Education', color: '#8e44ad', icon: '⚖️', active: true },
+        { code: 'HLTH', nameSi: 'සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය', nameEn: 'Health & PE', color: '#e84393', icon: '🏃‍♀️', active: true },
+        { code: 'ICT', nameSi: 'තොරතුරු තාක්ෂණය', nameEn: 'ICT', color: '#20bf6b', icon: '💻', active: true },
+        { code: 'TAM', nameSi: 'දෙමළ', nameEn: 'Tamil', color: '#00cec9', icon: '🗣️', active: true },
+        { code: 'AES', nameSi: 'සෞන්දර්ය විෂය', nameEn: 'Aesthetics', color: '#fd79a8', icon: '🎨', active: true },
+        { code: 'PTS', nameSi: 'ප්‍රායෝගික හා තාක්ෂණික කුසලතා', nameEn: 'PTS', color: '#636e72', icon: '🛠️', active: true }
+      ];
+
+      let g9Subjects = [];
+      let allLessons = [];
+      let currentEditingItem = null;
+      let editingSubjCode = null;
+
+      // Initial Load
+      window.onload = async function() {
+        await loadSubjects();
+        await loadSyllabus();
+      };
+
+      // --- 1. Dynamic Subject Configuration Engine ---
+      function getAllSubjects() {
+        return g9Subjects;
+      }
+
+      function getActiveSubjects() {
+        return (g9Subjects || []).filter(s => s.active !== false);
+      }
+
+      function getSubject(code) {
+        if (!code) return { code: 'UNKNOWN', nameSi: 'නොදනී', nameEn: 'Unknown', color: '#8c7ae6', icon: '📘', active: true };
+        const upper = String(code).toUpperCase().trim();
+        const found = g9Subjects.find(s => s.code.toUpperCase() === upper);
+        if (found) return found;
+        const def = DEFAULT_G9_SUBJECTS.find(s => s.code.toUpperCase() === upper);
+        if (def) return def;
+        return { code: upper, nameSi: upper, nameEn: upper, color: '#8c7ae6', icon: '📘', active: true };
+      }
+
+      async function loadSubjects() {
+        let loaded = false;
+        try {
+          const local = localStorage.getItem('g9_subjects_config');
+          if (local) {
+            const parsed = JSON.parse(local);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed.some(s => s.code === 'MATH' || s.code === 'SCI')) {
+              g9Subjects = parsed;
+              loaded = true;
+            }
+          }
+        } catch (e) {
+          console.warn('Error reading g9_subjects_config:', e);
+        }
+
+        if (!loaded || !g9Subjects || g9Subjects.length === 0) {
+          g9Subjects = JSON.parse(JSON.stringify(DEFAULT_G9_SUBJECTS));
+          localStorage.setItem('g9_subjects_config', JSON.stringify(g9Subjects));
+        }
+
+        updateSubjectDropdowns();
+        renderSubjectsList();
+
+        // Async sync from Supabase full_papers
+        if (supabase && typeof supabase.from === 'function') {
+          try {
+            const { data, error } = await supabase
+              .from('full_papers')
+              .select('remarks')
+              .eq('time_taken', 'APP_CONFIG_SUBJECTS')
+              .limit(1);
+
+            if (!error && data && data.length > 0 && data[0].remarks) {
+              try {
+                const remote = JSON.parse(data[0].remarks);
+                if (Array.isArray(remote) && remote.length > 0) {
+                  g9Subjects = remote;
+                  localStorage.setItem('g9_subjects_config', JSON.stringify(g9Subjects));
+                  updateSubjectDropdowns();
+                  renderSubjectsList();
+                  handleSearch();
+                }
+              } catch (pe) {
+                console.warn('Error parsing remote subjects config:', pe);
+              }
+            } else if (!error && (!data || data.length === 0)) {
+              // First time sync to Supabase
+              saveSubjects(g9Subjects);
+            }
+          } catch (e) {
+            console.warn('Could not fetch APP_CONFIG_SUBJECTS from Supabase:', e);
+          }
+        }
+      }
+
+      async function saveSubjects(newSubjects) {
+        g9Subjects = newSubjects;
+        localStorage.setItem('g9_subjects_config', JSON.stringify(g9Subjects));
+
+        // Notify parent window
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ action: 'SUBJECTS_UPDATED' }, '*');
+        }
+
+        // Sync to Supabase full_papers
+        if (supabase && typeof supabase.from === 'function') {
+          try {
+            const jsonStr = JSON.stringify(g9Subjects);
+            const nowIso = new Date().toISOString();
+
+            const { data: updateRes, error: updateErr } = await supabase
+              .from('full_papers')
+              .update({
+                remarks: jsonStr,
+                logged_at: nowIso
+              })
+              .eq('time_taken', 'APP_CONFIG_SUBJECTS')
+              .select('id');
+
+            if (updateErr || !updateRes || updateRes.length === 0) {
+              await supabase
+                .from('full_papers')
+                .insert([{
+                  subject: 'ICT',
+                  marks: 0,
+                  exam_date: nowIso.substring(0, 10),
+                  time_taken: 'APP_CONFIG_SUBJECTS',
+                  remarks: jsonStr,
+                  logged_at: nowIso
+                }]);
+            }
+          } catch (err) {
+            console.warn("Could not save subjects to Supabase:", err);
+          }
+        }
+      }
+
+      function updateSubjectDropdowns() {
+        // 1. Search Filter Dropdown
+        const searchFilter = document.getElementById('searchSubjectFilter');
+        if (searchFilter) {
+          const curVal = searchFilter.value || 'ALL';
+          let opts = '<option value="ALL">සියලුම විෂයයන් (All)</option>';
+          const activeSubjs = getActiveSubjects();
+          activeSubjs.forEach(s => {
+            opts += `<option value="${s.code}">${s.icon} ${s.code} - ${s.nameSi}</option>`;
+          });
+          searchFilter.innerHTML = opts;
+          if (curVal === 'ALL' || activeSubjs.some(s => s.code === curVal)) {
+            searchFilter.value = curVal;
+          } else {
+            searchFilter.value = 'ALL';
+          }
+        }
+
+        // 2. Add Tab Subject Dropdown
+        const addSubjSelect = document.getElementById('addSubject');
+        if (addSubjSelect) {
+          const curVal = addSubjSelect.value;
+          const activeSubjs = getActiveSubjects();
+          let opts = '';
+          activeSubjs.forEach(s => {
+            opts += `<option value="${s.code}">${s.icon} ${s.code} - ${s.nameSi}</option>`;
+          });
+          addSubjSelect.innerHTML = opts;
+          if (activeSubjs.some(s => s.code === curVal)) {
+            addSubjSelect.value = curVal;
+          } else if (activeSubjs.length > 0) {
+            addSubjSelect.value = activeSubjs[0].code;
+          }
+          onAddSubjectChange();
+        }
+      }
+
+      // --- 4. Tab 4: Subject Manager Logic ---
+      function renderSubjectsList() {
+        const container = document.getElementById('subjectsListContainer');
+        const countEl = document.getElementById('activeSubjectsCount');
+        if (!container) return;
+
+        const activeCount = g9Subjects.filter(s => s.active !== false).length;
+        if (countEl) {
+          countEl.innerText = `ක්‍රියාකාරී: ${activeCount} / ${g9Subjects.length}`;
+        }
+
+        if (g9Subjects.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 15px;">විෂයයන් හමු නොවීය.</div>';
+          return;
+        }
+
+        let html = '';
+        g9Subjects.forEach((s) => {
+          const isActive = s.active !== false;
+          const color = s.color || '#8c7ae6';
+          const statusBg = isActive ? 'rgba(46, 204, 113, 0.15)' : 'rgba(127, 143, 166, 0.15)';
+          const statusColor = isActive ? '#2ecc71' : '#7f8fa6';
+          const statusText = isActive ? 'ක්‍රියාකාරී' : 'අක්‍රියයි';
+
+          html += `
+            <div class="subject-card-item" style="border-left: 4px solid ${color};">
+              <div class="subj-card-top">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 16px;">${s.icon || '📘'}</span>
+                  <div>
+                    <div style="font-weight: 700; font-size: 11px; color: ${color};">
+                      ${s.code}
+                      <span style="font-weight: 500; font-size: 11px; color: var(--text-dark); margin-left: 4px;">${escapeHtml(s.nameSi || '')}</span>
+                    </div>
+                    <div style="font-size: 9px; color: var(--text-muted);">${escapeHtml(s.nameEn || '')}</div>
+                  </div>
+                </div>
+                <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${statusBg}; color: ${statusColor};">
+                  ${statusText}
+                </span>
+              </div>
+              <div class="subj-card-actions">
+                <button type="button" class="action-btn" onclick="toggleSubjectActive('${s.code}')">
+                  ${isActive ? '⏸️ අක්‍රිය කරන්න' : '▶️ ක්‍රියාකාරී කරන්න'}
+                </button>
+                <button type="button" class="action-btn edit" onclick="startEditSubject('${s.code}')">✏️ Edit</button>
+                <button type="button" class="action-btn del" onclick="deleteSubject('${s.code}')">🗑️ මකන්න</button>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      }
+
+      function promptPin() {
+        const pin = prompt("🔒 තහවුරු කිරීමේ මුරපදය ඇතුළත් කරන්න (Security Password):");
+        if (pin !== '3408') {
+          if (pin !== null) alert("⚠️ මුරපදය වැරදියි!");
+          return false;
+        }
+        return true;
+      }
+
+      function toggleSubjectActive(code) {
+        if (!promptPin()) return;
+        const s = g9Subjects.find(x => x.code === code);
+        if (s) {
+          s.active = !s.active;
+          saveSubjects(g9Subjects);
+          renderSubjectsList();
+          updateSubjectDropdowns();
+          handleSearch();
+          showStatus('subjStatus', `[${code}] තත්ත්වය ${s.active ? 'ක්‍රියාකාරී' : 'අක්‍රිය'} ලෙස වෙනස් කරන ලදී.`, true);
+        }
+      }
+
+      function deleteSubject(code) {
+        if (!confirm(`ඔබට [${code}] විෂය ඉවත් කිරීමට අවශ්‍ය බව තහවුරු කරන්න?`)) return;
+        if (!promptPin()) return;
+        g9Subjects = g9Subjects.filter(s => s.code !== code);
+        saveSubjects(g9Subjects);
+        renderSubjectsList();
+        updateSubjectDropdowns();
+        handleSearch();
+        showStatus('subjStatus', `[${code}] විෂය ඉවත් කරන ලදී.`, true);
+      }
+
+      function resetSubjectsToDefault() {
+        if (!confirm("පෙරනිමි විෂයයන් 13 යථා තත්ත්වයට පත් කිරීමට අවශ්‍යද?")) return;
+        if (!promptPin()) return;
+        g9Subjects = JSON.parse(JSON.stringify(DEFAULT_G9_SUBJECTS));
+        saveSubjects(g9Subjects);
+        renderSubjectsList();
+        updateSubjectDropdowns();
+        handleSearch();
+        showStatus('subjStatus', "පෙරනිමි විෂයයන් 13 සාර්ථකව ප්‍රතිස්ථාපනය කරන ලදී!", true);
+      }
+
+      function startEditSubject(code) {
+        const s = g9Subjects.find(x => x.code === code);
+        if (!s) return;
+        editingSubjCode = s.code;
+
+        document.getElementById('subjFormTitle').innerText = `✏️ විෂය සංස්කරණය: [${s.code}]`;
+        document.getElementById('subjCode').value = s.code;
+        document.getElementById('subjCode').disabled = true;
+        document.getElementById('subjNameSi').value = s.nameSi || '';
+        document.getElementById('subjNameEn').value = s.nameEn || '';
+        document.getElementById('subjColor').value = s.color || '#0984e3';
+        document.getElementById('subjIcon').value = s.icon || '📘';
+        document.getElementById('subjActive').checked = s.active !== false;
+        document.getElementById('subjSubmitBtn').innerText = "💾 විෂය යාවත්කාලීන කරන්න";
+        document.getElementById('cancelEditSubjBtn').style.display = 'block';
+
+        const p = document.getElementById('subjPassword');
+        if (p) p.value = '';
+        const pe = document.getElementById('subjPasswordError');
+        if (pe) pe.style.display = 'none';
+
+        document.getElementById('subjectForm').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function cancelEditSubject() {
+        editingSubjCode = null;
+        document.getElementById('subjFormTitle').innerText = "➕ නව විෂයයක් එක් කරන්න";
+        document.getElementById('subjCode').value = '';
+        document.getElementById('subjCode').disabled = false;
+        document.getElementById('subjNameSi').value = '';
+        document.getElementById('subjNameEn').value = '';
+        document.getElementById('subjColor').value = '#0984e3';
+        document.getElementById('subjIcon').value = '📘';
+        document.getElementById('subjActive').checked = true;
+        document.getElementById('subjPassword').value = '';
+        document.getElementById('subjSubmitBtn').innerText = "+ නව විෂය එක් කරන්න";
+        document.getElementById('cancelEditSubjBtn').style.display = 'none';
+        const pe = document.getElementById('subjPasswordError');
+        if (pe) pe.style.display = 'none';
+      }
+
+      async function submitSubjectForm(e) {
+        e.preventDefault();
+        const passInput = document.getElementById('subjPassword');
+        const passVal = passInput ? passInput.value.trim() : '';
+        const passErr = document.getElementById('subjPasswordError');
+
+        if (passVal !== '3408') {
+          if (passErr) {
+            passErr.innerText = passVal === '' ? '⚠️ කරුණාකර මුරපදය ඇතුළත් කරන්න!' : '⚠️ මුරපදය වැරදියි! කරුණාකර නැවත උත්සාහ කරන්න.';
+            passErr.style.display = 'block';
+          }
+          if (passInput) passInput.focus();
+          return;
+        }
+        if (passErr) passErr.style.display = 'none';
+
+        const rawCode = document.getElementById('subjCode').value.trim().toUpperCase();
+        const nameSi = document.getElementById('subjNameSi').value.trim();
+        const nameEn = document.getElementById('subjNameEn').value.trim();
+        const color = document.getElementById('subjColor').value;
+        const icon = document.getElementById('subjIcon').value.trim() || '📘';
+        const active = document.getElementById('subjActive').checked;
+
+        if (!rawCode || !nameSi) {
+          showStatus('subjStatus', "දෝෂයකි: විෂය කේතය සහ නම ඇතුළත් කිරීම අනිවාර්යයි!", false);
+          return;
+        }
+
+        if (editingSubjCode) {
+          const item = g9Subjects.find(x => x.code === editingSubjCode);
+          if (item) {
+            item.nameSi = nameSi;
+            item.nameEn = nameEn;
+            item.color = color;
+            item.icon = icon;
+            item.active = active;
+            showStatus('subjStatus', `[${editingSubjCode}] විෂය සාර්ථකව යාවත්කාලීන කරන ලදී!`, true);
+          }
+          cancelEditSubject();
+        } else {
+          // Add New
+          if (g9Subjects.some(x => x.code.toUpperCase() === rawCode)) {
+            showStatus('subjStatus', `දෝෂයකි: [${rawCode}] විෂය කේතය දැනටමත් ලැයිස්තුවේ පවතී!`, false);
+            return;
+          }
+          g9Subjects.push({
+            code: rawCode,
+            nameSi: nameSi,
+            nameEn: nameEn,
+            color: color,
+            icon: icon,
+            active: active
+          });
+          showStatus('subjStatus', `[${rawCode}] විෂය සාර්ථකව එක් කරන ලදී!`, true);
+          cancelEditSubject();
+        }
+
+        await saveSubjects(g9Subjects);
+        renderSubjectsList();
+        updateSubjectDropdowns();
+        handleSearch();
+      }
+
+      // --- Syllabus Loading & Tabs ---
+      async function loadSyllabus() {
+        let loadedFromSupabase = false;
+        if (supabase && typeof supabase.from === 'function' && navigator.onLine) {
+          try {
+            const { data, error } = await supabase
+              .from('canonical_syllabus')
+              .select('id, subject, unit_number, unit_name, sub_lesson_code, sub_lesson_title, sort_order')
+              .order('sort_order', { ascending: true });
+
+            if (!error && data && data.length > 0) {
+              const seen = new Set();
+              allLessons = [];
+
+              data.forEach(row => {
+                const uNum = (row.unit_number !== null && row.unit_number !== undefined)
+                  ? Number(row.unit_number)
+                  : parseInt(String(row.unit_name || '').match(/\d+/) || '1', 10);
+                const subj = String(row.subject || '').toUpperCase().trim();
+                const key = `${subj}_${uNum}`;
+
+                if (seen.has(key)) return;
+                seen.add(key);
+
+                const rawUnitName = String(row.unit_name || row.sub_lesson_title || `ඒකකය ${String(uNum).padStart(2, '0')}`).trim();
+                const code = String(row.sub_lesson_code || `Unit ${String(uNum).padStart(2, '0')}`).trim();
+
+                let cleanTitle = rawUnitName.replace(/^ඒකකය\s*\d+\s*[:\-–]?\s*/i, '').replace(/^Unit\s*\d+\s*[:\-–]?\s*/i, '').trim();
+                if (!cleanTitle && row.sub_lesson_title) {
+                  cleanTitle = String(row.sub_lesson_title).replace(/^Unit\s*\d+\s*[:\-–]?\s*/i, '').replace(/^ඒකකය\s*\d+\s*[:\-–]?\s*/i, '').trim();
+                }
+                if (!cleanTitle) cleanTitle = rawUnitName;
+
+                allLessons.push({
+                  id: row.id,
+                  subject: subj,
+                  unitNum: uNum,
+                  unit: rawUnitName,
+                  code: code,
+                  unitTitle: cleanTitle,
+                  sortOrder: row.sort_order || (uNum * 10)
+                });
+              });
+
+              loadedFromSupabase = true;
+              try {
+                localStorage.setItem('g9_canonical_units_cache', JSON.stringify(allLessons));
+              } catch(e) {}
+            }
+          } catch (err) {
+            console.warn("Supabase load failed, falling back to cache:", err);
+          }
+        }
+
+        if (!loadedFromSupabase) {
+          // Robust Offline Fallback: load from localStorage cache
+          try {
+            const cached = localStorage.getItem('g9_canonical_units_cache');
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                // Ensure items are properly normalized
+                allLessons = parsed.map(item => ({
+                  id: item.id || `local_${item.subject}_${item.unit_number || item.unitNum || 1}`,
+                  subject: (item.subject || 'MATH').toUpperCase().trim(),
+                  unitNum: Number(item.unit_number || item.unitNum || 1),
+                  unit: item.unit_name || item.unit || `ඒකකය ${String(item.unit_number || item.unitNum || 1).padStart(2, '0')}`,
+                  code: item.sub_lesson_code || item.code || `Unit ${String(item.unit_number || item.unitNum || 1).padStart(2, '0')}`,
+                  unitTitle: item.unitTitle || (item.unit_name || item.unit || '').replace(/^ඒකකය\s*\d+\s*[:\-–]?\s*/i, '').trim(),
+                  sortOrder: item.sort_order || item.sortOrder || (Number(item.unit_number || item.unitNum || 1) * 10)
+                }));
+              }
+            }
+          } catch(e) {
+            console.warn("Error reading g9_canonical_units_cache:", e);
+          }
+        }
+
+        handleSearch();
+        onAddSubjectChange();
+      }
+
+      function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        if (tabId === 'tabSearch') tabBtns[0].classList.add('active');
+        if (tabId === 'tabAdd') {
+          tabBtns[1].classList.add('active');
+          const p = document.getElementById('addPassword');
+          if (p) p.value = '';
+          const pe = document.getElementById('addPasswordError');
+          if (pe) pe.style.display = 'none';
+        }
+        if (tabId === 'tabEdit') {
+          tabBtns[2].classList.add('active');
+          const p = document.getElementById('editPassword');
+          if (p) p.value = '';
+          const pe = document.getElementById('editPasswordError');
+          if (pe) pe.style.display = 'none';
+        }
+        if (tabId === 'tabSubjects') {
+          tabBtns[3].classList.add('active');
+          const p = document.getElementById('subjPassword');
+          if (p) p.value = '';
+          const pe = document.getElementById('subjPasswordError');
+          if (pe) pe.style.display = 'none';
+          renderSubjectsList();
+        }
+
+        const el = document.getElementById(tabId);
+        if (el) el.classList.add('active');
+      }
+
+      // --- 1. Tab 1: Search Engine ---
+      function handleSearch() {
+        const query = (document.getElementById('searchBox') ? document.getElementById('searchBox').value : '').trim().toLowerCase();
+        const filterSubj = document.getElementById('searchSubjectFilter') ? document.getElementById('searchSubjectFilter').value : 'ALL';
+        const container = document.getElementById('searchResults');
+        if (!container) return;
+
+        if (!allLessons || allLessons.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 15px 0;">පාඩම් හමු නොවීය.</div>';
+          return;
+        }
+
+        const filtered = allLessons.filter(item => {
+          if (filterSubj !== 'ALL' && item.subject !== filterSubj) return false;
+          if (!query) return true;
+          return String(item.unitNum).toLowerCase().includes(query) ||
+                 String(item.unit || '').toLowerCase().includes(query) ||
+                 String(item.unitTitle || '').toLowerCase().includes(query) ||
+                 String(item.subject || '').toLowerCase().includes(query) ||
+                 String(item.code || '').toLowerCase().includes(query);
+        });
+
+        if (filtered.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 15px 0;">ගැළපෙන පාඩම් කිසිවක් නැත.</div>';
+          return;
+        }
+
+        let html = '';
+        filtered.slice(0, 50).forEach(item => {
+          const subjObj = getSubject(item.subject);
+          const color = subjObj.color || '#8c7ae6';
+          const icon = subjObj.icon || '📘';
+          const formattedUnit = String(item.unitNum).padStart(2, '0');
+          const displayTitle = item.unitTitle || item.unit || `ඒකකය ${formattedUnit}`;
+
+          html += `
+            <div class="search-result-item">
+              <div class="res-header">
+                <span class="badge-subj" style="background: ${color}22; color: ${color}; border: 1px solid ${color}55;">
+                  ${icon} ${item.subject}
+                </span>
+                <span style="font-weight: 700; font-size: 11px; color: ${color};">
+                  ඒකකය ${formattedUnit}
+                </span>
+              </div>
+              <div class="res-title">
+                <span style="font-weight: 700; color: ${color}; margin-right: 5px;">Unit ${formattedUnit}:</span>
+                <span>${escapeHtml(displayTitle)}</span>
+              </div>
+              <div class="res-unit">${escapeHtml(item.unit)}</div>
+              <div class="res-actions">
+                <button type="button" class="action-btn jump" onclick="jumpToRow('${item.subject}', '${escapeHtml(item.code)}', ${item.unitNum})">🎯 පනින්න</button>
+                <button type="button" class="action-btn edit" onclick="startEditing('${item.subject}', ${item.unitNum})">✏️ Edit</button>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      }
+
+      function jumpToRow(subject, code, unitNum) {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ action: 'JUMP_DRILLDOWN', subject: subject, code: code, unitNum: unitNum }, '*');
+        } else {
+          localStorage.setItem('tracker_jump_target', JSON.stringify({ subject: subject, code: code, unitNum: unitNum, at: Date.now() }));
+        }
+      }
+
+      // --- 2. Tab 2: Add Main Unit Engine ---
+      function onAddSubjectChange() {
+        const subjSelect = document.getElementById('addSubject');
+        if (!subjSelect) return;
+        const subj = subjSelect.value;
+        if (!subj) return;
+
+        const subjLessons = allLessons.filter(l => l.subject === subj);
+        let maxUnit = 0;
+        subjLessons.forEach(l => {
+          const u = Number(l.unitNum);
+          if (!isNaN(u) && u > maxUnit) maxUnit = u;
+        });
+
+        const unitInput = document.getElementById('unitNumInput');
+        if (unitInput) {
+          unitInput.value = maxUnit + 1;
+        }
+      }
+
+      async function submitNewLesson(e) {
+        e.preventDefault();
+        const btn = document.getElementById('addBtn');
+        const status = document.getElementById('addStatus');
+
+        const subject = document.getElementById('addSubject').value;
+        const unitNumVal = document.getElementById('unitNumInput').value.trim();
+        const unitTitle = document.getElementById('unitTitleInput').value.trim();
+
+        if (!subject) {
+          showStatus('addStatus', "දෝෂයකි: කරුණාකර විෂයක් තෝරන්න!", false);
+          return;
+        }
+        if (!unitNumVal) {
+          showStatus('addStatus', "දෝෂයකි: කරුණාකර ඒකක අංකය ඇතුළත් කරන්න!", false);
+          return;
+        }
+        if (!unitTitle) {
+          showStatus('addStatus', "දෝෂයකි: කරුණාකර ඒකකයේ නම ඇතුළත් කරන්න!", false);
+          return;
+        }
+
+        const passInput = document.getElementById('addPassword');
+        const passVal = passInput ? passInput.value.trim() : '';
+        const passErr = document.getElementById('addPasswordError');
+        if (passVal !== '3408') {
+          if (passErr) {
+            passErr.innerText = passVal === '' ? '⚠️ කරුණාකර මුරපදය ඇතුළත් කරන්න!' : '⚠️ මුරපදය වැරදියි! කරුණාකර නැවත උත්සාහ කරන්න.';
+            passErr.style.display = 'block';
+          }
+          if (passInput) passInput.focus();
+          return;
+        }
+        if (passErr) passErr.style.display = 'none';
+
+        const unitNumber = parseInt(unitNumVal, 10);
+        if (isNaN(unitNumber) || unitNumber < 1) {
+          showStatus('addStatus', "දෝෂයකි: වලංගු ඒකක අංකයක් ඇතුළත් කරන්න!", false);
+          return;
+        }
+
+        // Duplicate check
+        const existing = allLessons.find(l => l.subject === subject && Number(l.unitNum) === unitNumber);
+        if (existing) {
+          showStatus('addStatus', `දෝෂයකි: [${subject}] ඒකකය ${unitNumber} දැනටමත් පද්ධතියේ පවතී!`, false);
+          return;
+        }
+
+        const formattedNum = String(unitNumber).padStart(2, '0');
+        const unitName = "ඒකකය " + formattedNum + ": " + unitTitle;
+        const unitCode = "Unit " + formattedNum;
+
+        if (!supabase || typeof supabase.from !== 'function' || !navigator.onLine) {
+          const newLesson = {
+            id: 'local_' + subject + '_' + unitNumber + '_' + Date.now(),
+            subject: subject,
+            unitNum: unitNumber,
+            unit: unitName,
+            code: unitCode,
+            unitTitle: unitTitle,
+            sortOrder: unitNumber * 10
+          };
+          allLessons.push(newLesson);
+          try {
+            localStorage.setItem('g9_canonical_units_cache', JSON.stringify(allLessons));
+          } catch(e) {}
+          btn.disabled = false;
+          btn.innerText = "+ නව ඒකකය සුරකින්න";
+          showStatus('addStatus', `[${subject}] ඒකකය ${formattedNum} සාර්ථකව ඇතුළත් කරන ලදී (Offline)!`, true);
+          document.getElementById('unitTitleInput').value = '';
+          if (passInput) passInput.value = '';
+          handleSearch();
+          onAddSubjectChange();
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ action: 'SYLLABUS_UPDATED' }, '*');
+          }
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "සුරැකෙමින් පවතී...";
+
+        try {
+          let payload = {
+            subject: subject,
+            unit_number: unitNumber,
+            unit_name: unitName,
+            sub_lesson_code: unitCode,
+            sub_lesson_title: unitName,
+            sort_order: unitNumber * 10
+          };
+
+          let { error } = await supabase.from('canonical_syllabus').insert([payload]);
+
+          // Handle database generated column or constraint fallback if needed
+          if (error && (error.code === '428C9' || (error.message && error.message.includes('generated column')))) {
+            delete payload.sort_order;
+            const retry = await supabase.from('canonical_syllabus').insert([payload]);
+            error = retry.error;
+          }
+          if (error && (error.code === '22P02' || (error.message && error.message.includes('numeric')))) {
+            delete payload.sort_order;
+            payload.sub_lesson_code = String(unitNumber);
+            const retry = await supabase.from('canonical_syllabus').insert([payload]);
+            error = retry.error;
+          }
+
+          if (error) {
+            if (error.code === '23505') {
+              throw new Error(`[${subject}] ඒකකය ${unitNumber} දැනටමත් පද්ධතියේ පවතී.`);
+            }
+            throw error;
+          }
+
+          btn.disabled = false;
+          btn.innerText = "+ නව ඒකකය සුරකින්න";
+          showStatus('addStatus', `[${subject}] ඒකකය ${formattedNum} සාර්ථකව ඇතුළත් කරන ලදී!`, true);
+          document.getElementById('unitTitleInput').value = '';
+          if (passInput) passInput.value = '';
+          await loadSyllabus();
+          onAddSubjectChange();
+
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ action: 'SYLLABUS_UPDATED' }, '*');
+          }
+        } catch (err) {
+          btn.disabled = false;
+          btn.innerText = "+ නව ඒකකය සුරකින්න";
+          showStatus('addStatus', "දෝෂයකි: " + (err.message || "ඇතුළත් කිරීම අසාර්ථක විය"), false);
+        }
+      }
+
+      // --- 3. Tab 3: Edit Main Unit Engine ---
+      function startEditing(subject, unitNum) {
+        const item = allLessons.find(l => l.subject === subject && Number(l.unitNum) === Number(unitNum));
+        if (!item) return;
+
+        currentEditingItem = item;
+        document.getElementById('editEmptyMsg').style.display = 'none';
+        document.getElementById('editForm').style.display = 'block';
+
+        const subjObj = getSubject(item.subject);
+        const formattedUnitNum = String(item.unitNum).padStart(2, '0');
+
+        const headerTag = document.getElementById('editHeaderTag');
+        headerTag.innerText = `[${item.subject}] ඒකකය ${formattedUnitNum}`;
+        headerTag.style.color = subjObj.color || 'var(--primary)';
+
+        document.getElementById('editPrefix').innerText = `ඒකකය ${formattedUnitNum}:`;
+        document.getElementById('editUnitTitleInput').value = item.unitTitle || '';
+
+        const editPass = document.getElementById('editPassword');
+        if (editPass) editPass.value = '';
+        const editErr = document.getElementById('editPasswordError');
+        if (editErr) editErr.style.display = 'none';
+        const editStat = document.getElementById('editStatus');
+        if (editStat) editStat.style.display = 'none';
+
+        switchTab('tabEdit');
+      }
+
+      async function submitEditLesson(e) {
+        e.preventDefault();
+        if (!currentEditingItem) return;
+
+        const passInput = document.getElementById('editPassword');
+        const passVal = passInput ? passInput.value.trim() : '';
+        const passErr = document.getElementById('editPasswordError');
+        if (passVal !== '3408') {
+          if (passErr) {
+            passErr.innerText = passVal === '' ? '⚠️ කරුණාකර මුරපදය ඇතුළත් කරන්න!' : '⚠️ මුරපදය වැරදියි! කරුණාකර නැවත උත්සාහ කරන්න.';
+            passErr.style.display = 'block';
+          }
+          if (passInput) passInput.focus();
+          return;
+        }
+        if (passErr) passErr.style.display = 'none';
+
+        const btn = document.getElementById('editBtn');
+        const newTitle = document.getElementById('editUnitTitleInput').value.trim();
+        if (!newTitle) {
+          showStatus('editStatus', "දෝෂයකි: කරුණාකර ඒකකයේ නම ඇතුළත් කරන්න!", false);
+          return;
+        }
+
+        const formattedUnitNum = String(currentEditingItem.unitNum).padStart(2, '0');
+        const fullUnitName = `ඒකකය ${formattedUnitNum}: ${newTitle}`;
+
+        btn.disabled = true;
+        btn.innerText = "යාවත්කාලීන වෙමින් පවතී...";
+
+        if (!supabase || typeof supabase.from !== 'function' || !navigator.onLine) {
+          currentEditingItem.unit = fullUnitName;
+          currentEditingItem.unitTitle = newTitle;
+          try {
+            localStorage.setItem('g9_canonical_units_cache', JSON.stringify(allLessons));
+          } catch(e) {}
+          btn.disabled = false;
+          btn.innerText = "💾 නම යාවත්කාලීන කරන්න";
+          showStatus('editStatus', `[${currentEditingItem.subject}] ඒකකය ${formattedUnitNum} සාර්ථකව යාවත්කාලීන කරන ලදී (Offline)!`, true);
+          if (passInput) passInput.value = '';
+          handleSearch();
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ action: 'SYLLABUS_UPDATED' }, '*');
+          }
+          return;
+        }
+
+        try {
+          const updatePayload = {
+            unit_name: fullUnitName,
+            sub_lesson_title: fullUnitName,
+            updated_at: new Date().toISOString()
+          };
+
+          let query;
+          if (currentEditingItem.id) {
+            query = supabase.from('canonical_syllabus').update(updatePayload).eq('id', currentEditingItem.id);
+          } else {
+            query = supabase.from('canonical_syllabus').update(updatePayload).match({
+              subject: currentEditingItem.subject,
+              unit_number: currentEditingItem.unitNum
+            });
+          }
+
+          const { error } = await query;
+          if (error) throw error;
+
+          btn.disabled = false;
+          btn.innerText = "💾 නම යාවත්කාලීන කරන්න";
+          showStatus('editStatus', `[${currentEditingItem.subject}] ඒකකය ${formattedUnitNum} සාර්ථකව යාවත්කාලීන කරන ලදී!`, true);
+          if (passInput) passInput.value = '';
+          
+          await loadSyllabus();
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ action: 'SYLLABUS_UPDATED' }, '*');
+          }
+        } catch (err) {
+          btn.disabled = false;
+          btn.innerText = "💾 නම යාවත්කාලීන කරන්න";
+          showStatus('editStatus', "දෝෂයකි: " + (err.message || "යාවත්කාලීන කිරීම අසාර්ථක විය"), false);
+        }
+      }
+
+      // --- Helpers ---
+      function showStatus(id, msg, isSuccess) {
+        const box = document.getElementById(id);
+        if (!box) return;
+        box.className = "status-box " + (isSuccess ? "success" : "error");
+        box.innerText = msg;
+        box.style.display = 'block';
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+    </script>
+  </body>
+</html>
