@@ -623,7 +623,7 @@
           const local = localStorage.getItem('g9_subjects_config');
           if (local) {
             const parsed = JSON.parse(local);
-            if (Array.isArray(parsed) && parsed.length > 0 && parsed.some(s => s.code === 'MATH' || s.code === 'SCI')) {
+            if (Array.isArray(parsed) && parsed.length > 0) {
               g9Subjects = parsed;
               loaded = true;
             }

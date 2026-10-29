@@ -1558,21 +1558,13 @@
 
     <!-- Day-of-Week & Active Times Visualization (24 × 7 Habit Matrix) -->
     <section class="section-card" id="sectionWeeklyHabitMatrix">
-      <div class="section-header" style="flex-wrap: wrap; gap: 10px;">
+      <div class="section-header">
         <div class="section-title">
           <span class="section-title-icon">🗓️</span>
           <span>සතිපතා දෛනික හා කාල පරාස අනුකෘතිය (24 × 7 Day-of-Week &amp; Active Times Matrix)</span>
-          <span id="habitMatrixTfSummary" style="font-size:11.5px; font-weight:600; color:var(--primary, #6c5ce7); margin-left: 6px;"></span>
         </div>
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <div class="chart-filter-tabs" id="habitMatrixTimeframeTabs">
-            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('1w', this)">1 Week</button>
-            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('1m', this)">1 Month</button>
-            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('3m', this)">3 Months</button>
-            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('6m', this)">6 Months</button>
-            <button type="button" class="chart-tab-btn" onclick="setHabitMatrixTimeframe('1y', this)">1 Year</button>
-            <button type="button" class="chart-tab-btn active" onclick="setHabitMatrixTimeframe('all', this)">All Time</button>
-          </div>
+        <div class="header-extra-info">
+          <span style="font-size:11px; color:var(--text-muted);">සතියේ දින 7 සහ පැය 24 පුරා අධ්‍යයන රටාව (Weekly Focus Habits)</span>
         </div>
       </div>
 
@@ -1872,7 +1864,7 @@
         const stored = localStorage.getItem('g9_subjects_config');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0 && parsed.some(s => s.code === 'MATH' || s.code === 'SCI')) {
+          if (Array.isArray(parsed) && parsed.length > 0) {
             g9SubjectsCache = parsed;
             return parsed;
           }
@@ -1880,8 +1872,7 @@
       } catch (e) {
         console.warn('Failed to parse g9_subjects_config:', e);
       }
-      g9SubjectsCache = JSON.parse(JSON.stringify(DEFAULT_G9_SUBJECTS));
-      try { localStorage.setItem('g9_subjects_config', JSON.stringify(g9SubjectsCache)); } catch(_) {}
+      g9SubjectsCache = DEFAULT_G9_SUBJECTS;
       return DEFAULT_G9_SUBJECTS;
     }
 
@@ -2243,7 +2234,6 @@
     let currentPeakTimeframe = 'all'; // Default to All Time for Peak Study Time
     let currentDoughnutTimeframe = 'all'; // Default to All Time
     let currentTrendTimeframe = '14d'; // Default to 14 Days
-    let currentHabitMatrixTimeframe = 'all'; // Default to All Time for 24x7 Matrix
     let currentHistoryFilter = 'ALL';
     let currentHistoryTimeframe = 'all';
     let currentHistoryPage = 1;
@@ -3538,12 +3528,11 @@
         });
       } else {
         let dayCount = 7;
-        if (mode === '7d' || mode === '1w' || mode === '1week') dayCount = 7;
-        else if (mode === '14d' || mode === '2w') dayCount = 14;
-        else if (mode === '1m' || mode === '30d' || mode === '1month') dayCount = 30;
-        else if (mode === '3m' || mode === '90d' || mode === '3months') dayCount = 90;
-        else if (mode === '6m' || mode === '180d' || mode === '6months') dayCount = 180;
-        else if (mode === '1y' || mode === '365d' || mode === '1year') dayCount = 365;
+        if (mode === '7d') dayCount = 7;
+        else if (mode === '14d') dayCount = 14;
+        else if (mode === '1m' || mode === '30d') dayCount = 30;
+        else if (mode === '3m' || mode === '90d') dayCount = 90;
+        else if (mode === '1y' || mode === '365d') dayCount = 365;
 
         // Inclusive calendar day boundary: (dayCount - 1) days ago from local midnight
         const cutoffMidnight = startOfToday - (dayCount - 1) * 86400000;
@@ -3859,16 +3848,6 @@
     });
 
     // 4. 24 × 7 Day-of-Week & Active Times Habit Matrix
-    function setHabitMatrixTimeframe(tf, btn) {
-      currentHabitMatrixTimeframe = tf;
-      const container = document.getElementById('habitMatrixTimeframeTabs');
-      if (container) {
-        container.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
-      }
-      if (btn) btn.classList.add('active');
-      renderWeeklyHabitMatrix();
-    }
-
     function showHabitCellDetail(dayName, daySinhala, startHour, endHour, mins, count, cellEl) {
       document.querySelectorAll('.habit-cell-24').forEach(c => c.classList.remove('active-tap'));
       if (cellEl) cellEl.classList.add('active-tap');
@@ -3905,13 +3884,8 @@
       });
 
       let maxCellMins = 0;
-      let totalFilteredMins = 0;
-      let totalFilteredSessions = 0;
 
-      // Filter sessions based on selected timeframe (1w, 1m, 3m, 6m, 1y, all)
-      const filteredSessions = filterSessionsByTimeframe(allSessions, currentHabitMatrixTimeframe);
-
-      filteredSessions.forEach(s => {
+      allSessions.forEach(s => {
         const mins = Number(s.duration_minutes) || 0;
         if (mins <= 0) return;
 
@@ -3930,24 +3904,11 @@
         if (matrix[dayKey] && matrix[dayKey][hr]) {
           matrix[dayKey][hr].mins += mins;
           matrix[dayKey][hr].count++;
-          totalFilteredMins += mins;
-          totalFilteredSessions++;
           if (matrix[dayKey][hr].mins > maxCellMins) {
             maxCellMins = matrix[dayKey][hr].mins;
           }
         }
       });
-
-      const summaryEl = document.getElementById('habitMatrixTfSummary');
-      if (summaryEl) {
-        const hrs = (totalFilteredMins / 60).toFixed(1);
-        summaryEl.textContent = `• ${totalFilteredMins} mins (${hrs} hrs / ${totalFilteredSessions} sessions)`;
-      }
-
-      const infoEl = document.getElementById('habitActiveInfo');
-      if (infoEl) {
-        infoEl.innerHTML = '💡 Hover or tap any cell to inspect focus time';
-      }
 
       const rowsHtml = DAYS_ORDER.map(d => {
         let cellsHtml = '';
@@ -4681,7 +4642,6 @@
     window.renderDoughnutChart = renderDoughnutChart;
     window.renderTrendBarChart = renderTrendBarChart;
     window.renderWeeklyHabitMatrix = renderWeeklyHabitMatrix;
-    window.setHabitMatrixTimeframe = setHabitMatrixTimeframe;
     window.setSlotFilter = setSlotFilter;
     window.setHistoryFilter = setHistoryFilter;
     window.setHistoryTimeframe = setHistoryTimeframe;
